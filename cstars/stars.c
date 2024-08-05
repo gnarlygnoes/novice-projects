@@ -7,8 +7,7 @@ static const int screenHeight = 1080;
 static const int numStars = 90000;
 
 typedef struct Star{
-    int x;
-    int y;
+    int x, y;
     float w, h;
     Color colour;
 } Star;
