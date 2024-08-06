@@ -5,19 +5,22 @@ import (
 )
 
 const (
-	BulletSpeed = 30
-	NumStars    = 9000
-	EnemySpeed  = 2
+	BulletSpeed  = 30
+	NumStars     = 9000
+	NumBullets   = 50
+	EnemySpeed   = 0
+	ScreenWidth  = 1600
+	ScreenHeight = 1200
 )
 
 type Game struct {
-	ScreenWidth  int32
-	ScreenHeight int32
-	GameActive   bool
-	PlayerScore  int
+	// ScreenWidth  int32
+	// ScreenHeight int32
+	GameActive  bool
+	PlayerScore int
 
 	Player  Player
-	Bullets [32]Bullet
+	Bullets [NumBullets]Bullet
 	Enemies [13][13]Enemy
 	stars   [NumStars]Star
 }
@@ -67,13 +70,14 @@ type Star struct {
 
 func main() {
 	game := Game{}
+	rl.InitWindow(ScreenWidth, ScreenHeight, "Aliens of Golang")
+
 	game.InitGame()
 
-	defer rl.CloseWindow()
+	// defer rl.CloseWindow()
 
-	rl.SetTargetFPS(120)
+	rl.SetTargetFPS(60)
 
-	rl.InitWindow(game.ScreenWidth, game.ScreenHeight, "Aliens of Golang")
 	for !rl.WindowShouldClose() {
 		game.Update()
 
@@ -82,16 +86,14 @@ func main() {
 }
 
 func (g *Game) InitGame() {
-	g.ScreenWidth = 1600
-	g.ScreenHeight = 1200
 	g.GameActive = true
 	g.PlayerScore = 0
 
 	// Initialise player
 	g.Player.Rec.Width = 60
 	g.Player.Rec.Height = 80
-	g.Player.Rec.X = float32(g.ScreenWidth/2 - int32(g.Player.Rec.Width/2))
-	g.Player.Rec.Y = float32(g.ScreenHeight - int32(g.Player.Rec.Height))
+	g.Player.Rec.X = float32(ScreenWidth/2 - int32(g.Player.Rec.Width/2))
+	g.Player.Rec.Y = float32(ScreenHeight - int32(g.Player.Rec.Height))
 	g.Player.Speed = 10
 	g.Player.Health = 1
 	g.Player.Colour = rl.Red
@@ -119,7 +121,7 @@ func (g *Game) InitGame() {
 	e.Rec.Width = 60
 	e.Rec.Height = 80
 	var enemiesVertical int = 5
-	var enemiesHorizontal int32 = g.ScreenWidth / (2 * int32(e.Rec.Width))
+	var enemiesHorizontal int32 = ScreenWidth / (2 * int32(e.Rec.Width))
 
 	for row := range enemiesVertical {
 		for i := range enemiesHorizontal {
@@ -134,24 +136,20 @@ func (g *Game) InitGame() {
 }
 
 func (g *Game) HandleInputs() {
-	if rl.IsKeyDown(rl.KeyRight) && g.Player.Rec.X < float32(g.ScreenWidth)-g.Player.Rec.Width {
+	if rl.IsKeyDown(rl.KeyRight) && g.Player.Rec.X < float32(ScreenWidth)-g.Player.Rec.Width {
 		g.Player.Rec.X += g.Player.Speed
 	}
 	if rl.IsKeyDown(rl.KeyLeft) && g.Player.Rec.X > 0.0 {
 		g.Player.Rec.X -= g.Player.Speed
 	}
-	if rl.IsKeyDown(rl.KeyDown) && g.Player.Rec.Y < float32(g.ScreenHeight)-g.Player.Rec.Height {
+	if rl.IsKeyDown(rl.KeyDown) && g.Player.Rec.Y < float32(ScreenHeight)-g.Player.Rec.Height {
 		g.Player.Rec.Y += g.Player.Speed
 	}
 	if rl.IsKeyDown(rl.KeyUp) && g.Player.Rec.Y > 0.0 {
 		g.Player.Rec.Y -= g.Player.Speed
 	}
 	if rl.IsKeyDown(rl.KeySpace) {
-		for i := range g.Bullets {
-			g.Bullets[i].Active = true
-			g.Bullets[i].Rec.X = g.Player.Rec.X + g.Player.Rec.Width/2 - g.Bullets[i].Rec.Width/2
-			g.Bullets[i].Rec.Y = g.Player.Rec.Y - g.Bullets[i].Rec.Height
-		}
+		g.Shoot()
 	}
 }
 
@@ -175,6 +173,21 @@ func (g *Game) HandleInputs() {
 // 	return b
 // }
 
+func (g *Game) Shoot() {
+	for i := range g.Bullets {
+		// i %= NumBullets
+		if !g.Bullets[i].Active {
+			g.Bullets[i].Active = true
+			g.Bullets[i].Rec.X = g.Player.Rec.X + g.Player.Rec.Width/2 - g.Bullets[i].Rec.Width/2
+			g.Bullets[i].Rec.Y = g.Player.Rec.Y - g.Bullets[i].Rec.Height
+			// fmt.Println(i)
+
+			break
+		}
+
+	}
+}
+
 func (g *Game) BulletLogic() {
 	for i := range g.Bullets {
 		if g.Bullets[i].Active {
@@ -183,6 +196,7 @@ func (g *Game) BulletLogic() {
 				g.Bullets[i].Active = false
 			}
 		}
+		// i %= NumBullets
 	}
 }
 
@@ -201,7 +215,7 @@ func (g *Game) HandleCollisions() {
 					g.Bullets[i].Active = false
 					g.Enemies[j][k].Alive = false
 					g.Bullets[i].Rec.X = -1000
-					g.Enemies[j][k].Rec.X = -1000
+					g.Enemies[j][k].Rec.X = -2000
 					g.PlayerScore++
 				}
 			}
@@ -265,7 +279,7 @@ func (g *Game) Draw() {
 		// 	rl.DrawText(text, g.ScreenWidth/2-100, 200, 20, rl.Green)
 		// } else {
 		text := "You are lose. Hit enter to start again rofl."
-		rl.DrawText(text, g.ScreenWidth/2-250, 200, 20, rl.Red)
+		rl.DrawText(text, ScreenWidth/2-250, 200, 20, rl.Red)
 		// }
 		if rl.IsKeyPressed(rl.KeyEnter) {
 			g.InitGame()
