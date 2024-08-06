@@ -17,7 +17,7 @@ type Game struct {
 	PlayerScore  int
 
 	Player  Player
-	Bullets []Bullet
+	Bullets [32]Bullet
 	Enemies [13][13]Enemy
 	stars   [NumStars]Star
 }
@@ -45,6 +45,25 @@ type Star struct {
 	w, h   float32
 	Colour rl.Color
 }
+
+// type RingBuffer struct {
+// 	data       []*Data
+// 	size       int
+// 	lastInsert int
+// 	nextRead   int
+// }
+
+// type Data struct {
+// 	Value string
+// }
+
+// func NewRingBuffer(size int) *RingBuffer {
+// 	return &RingBuffer{
+// 		data:       make([]*Data, size),
+// 		size:       size,
+// 		lastInsert: -1,
+// 	}
+// }
 
 func main() {
 	game := Game{}
@@ -82,6 +101,19 @@ func (g *Game) InitGame() {
 		g.stars[i] = GenerateStars()
 	}
 
+	// Initialise bullets
+	// b := Bullet{}
+	// b.Rec.Width = 5
+	// b.Rec.Height = 20
+	// b.Active = false
+	for i := range g.Bullets {
+		g.Bullets[i].Rec.Width = 5
+		g.Bullets[i].Rec.Height = 20
+		g.Bullets[i].Active = false
+		g.Bullets[i].Rec.X = -1000
+		g.Bullets[i].Rec.Y = 0
+	}
+
 	// Initialise enemies
 	e := Enemy{}
 	e.Rec.Width = 60
@@ -114,20 +146,34 @@ func (g *Game) HandleInputs() {
 	if rl.IsKeyDown(rl.KeyUp) && g.Player.Rec.Y > 0.0 {
 		g.Player.Rec.Y -= g.Player.Speed
 	}
-	if rl.IsKeyPressed(rl.KeySpace) {
-		g.Shoot()
+	if rl.IsKeyDown(rl.KeySpace) {
+		for i := range g.Bullets {
+			g.Bullets[i].Active = true
+			g.Bullets[i].Rec.X = g.Player.Rec.X + g.Player.Rec.Width/2 - g.Bullets[i].Rec.Width/2
+			g.Bullets[i].Rec.Y = g.Player.Rec.Y - g.Bullets[i].Rec.Height
+		}
 	}
 }
 
-func (g *Game) Shoot() {
-	b := Bullet{}
-	b.Rec.X = g.Player.Rec.X + g.Player.Rec.Width/2 - b.Rec.Width/2
-	b.Rec.Y = g.Player.Rec.Y - b.Rec.Height
-	b.Rec.Width = 5
-	b.Rec.Height = 20
-	b.Active = true
-	g.Bullets = append(g.Bullets, b)
-}
+// func (g *Game) Shoot() Bullet {
+// 	b := Bullet{}
+// 	b.Rec.X = g.Player.Rec.X + g.Player.Rec.Width/2 - b.Rec.Width/2
+// 	b.Rec.Y = g.Player.Rec.Y - b.Rec.Height
+// 	b.Rec.Width = 5
+// 	b.Rec.Height = 20
+// 	b.Active = true
+// g.Bullets = append(g.Bullets, b)
+
+// 	// for i := range g.Bullets {
+// 	// 	g.Bullets[i].Active = true
+// 	// 	g.Bullets[i].Rec.X = g.Player.Rec.X + g.Player.Rec.Width/2 - g.Bullets[i].Rec.Width/2
+// 	// 	g.Bullets[i].Rec.Y = g.Player.Rec.Y - g.Bullets[i].Rec.Height
+// 	// 	g.Bullets[i].Rec.Width = 5
+// 	// 	g.Bullets[i].Rec.Height = 20
+// 	// 	g.Bullets[i].Rec.Y -= BulletSpeed
+// 	// }
+// 	return b
+// }
 
 func (g *Game) BulletLogic() {
 	for i := range g.Bullets {
@@ -186,7 +232,6 @@ func (g *Game) Update() {
 func (g *Game) Draw() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.Black)
-	rl.DrawFPS(20, 20)
 	// rl.GetFrameTime()
 	for i := range g.stars {
 		rl.DrawRectangle(g.stars[i].x,
@@ -195,7 +240,6 @@ func (g *Game) Draw() {
 			int32(g.stars[i].h),
 			g.stars[i].Colour)
 	}
-
 	if g.GameActive {
 		rl.DrawRectangleRec(g.Player.Rec, g.Player.Colour)
 
@@ -215,18 +259,20 @@ func (g *Game) Draw() {
 			}
 		}
 	} else {
-		rl.ClearBackground(rl.Black)
+		// rl.ClearBackground(rl.Black)
 		// if g.PlayerScore >= 10 {
 		// 	text := "YOUR WINNER!!! OMG!"
 		// 	rl.DrawText(text, g.ScreenWidth/2-100, 200, 20, rl.Green)
 		// } else {
-		text := "You are lose"
-		rl.DrawText(text, g.ScreenWidth/2-100, 200, 20, rl.Red)
+		text := "You are lose. Hit enter to start again rofl."
+		rl.DrawText(text, g.ScreenWidth/2-250, 200, 20, rl.Red)
 		// }
 		if rl.IsKeyPressed(rl.KeyEnter) {
 			g.InitGame()
 		}
 	}
+
+	rl.DrawFPS(20, 20)
 	rl.EndDrawing()
 }
 
