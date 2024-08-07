@@ -4,18 +4,13 @@
 static const int screenWidth = 1920;
 static const int screenHeight = 1080;
 
-static const int numStars = 90000;
+static const int numStars = 9000;
 
 typedef struct Star{
     int x, y;
     float w, h;
     Color colour;
 } Star;
-
-typedef struct Player{
-    int x, y, w, h;
-    Color colour;
-} Player;
 
 Star new_star_field();
 
@@ -25,7 +20,6 @@ int main(void)
 
     struct Star stars[numStars];
 
-    // int i = 0;
     for (size_t i = 0; i < sizeof(stars) / sizeof(*stars); i++) {
         stars[i] = new_star_field();
     }

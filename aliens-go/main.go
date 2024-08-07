@@ -15,6 +15,7 @@ const (
 	EnemiesHeight = 80
 	EnemiesNumY   = 5
 	EnemiesNumX   = (ScreenWidth / (EnemiesWidth * 2)) - 1
+	NumDefences   = 6
 )
 
 type Game struct {
@@ -27,6 +28,7 @@ type Game struct {
 	Bullets [NumBullets]Bullet
 	Enemies [EnemiesNumY][EnemiesNumX]Enemy
 	stars   [NumStars]Star
+	Defence [NumDefences]Defence
 }
 
 type Player struct {
@@ -51,6 +53,11 @@ type Enemy struct {
 type Star struct {
 	x, y   int32
 	w, h   float32
+	Colour rl.Color
+}
+
+type Defence struct {
+	Rec    rl.Rectangle
 	Colour rl.Color
 }
 
@@ -116,6 +123,14 @@ func (g *Game) InitGame() {
 
 	g.EnemyBox.X = 0
 	g.EnemyBox.Y = 2 * EnemiesWidth * EnemiesNumX
+
+	for i := range g.Defence {
+		g.Defence[i].Rec.Width = ScreenWidth / 12
+		g.Defence[i].Rec.Height = 100
+		g.Defence[i].Rec.X = 50 + ScreenWidth/(6/float32(i)) + float32(5*i)
+		g.Defence[i].Rec.Y = ScreenHeight - 200 - g.Defence[i].Rec.Height
+		// d.Colour = rl.Gray
+	}
 }
 
 func (g *Game) HandleInputs() {
@@ -145,7 +160,6 @@ func (g *Game) Shoot() {
 
 			break
 		}
-
 	}
 }
 
@@ -183,14 +197,21 @@ func (g *Game) HandleCollisions() {
 			}
 		}
 	}
+	for i := range g.Bullets {
+		for j := range g.Defence {
+			if rl.CheckCollisionRecs(g.Bullets[i].Rec, g.Defence[j].Rec) {
+				g.Bullets[i].Active = false
+				g.Bullets[i].Rec.Y = -1000
+			}
+		}
+	}
 }
 
 func (g *Game) EnemyBehaviour() {
-	if g.EnemyBox.Y >= ScreenWidth {
+	if g.EnemyBox.Y >= ScreenWidth+EnemiesWidth {
 		g.MovingRight = false
 	}
-	// if g.Enemies[i][j].Rec.X <= 50 {
-	if g.EnemyBox.X <= 50 {
+	if g.EnemyBox.X <= 10 {
 		g.MovingRight = true
 	}
 
@@ -228,6 +249,10 @@ func (g *Game) EnemyBehaviour() {
 	}
 }
 
+// func generateDefence(g *Game) {
+
+// }
+
 func (g *Game) Update() {
 	g.HandleInputs()
 	g.BulletLogic()
@@ -247,6 +272,8 @@ func (g *Game) Draw() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.Black)
 	// rl.GetFrameTime()
+
+	// Draw a beautiful starrry canopy
 	for i := range g.stars {
 		rl.DrawRectangle(g.stars[i].x,
 			g.stars[i].y,
@@ -254,10 +281,19 @@ func (g *Game) Draw() {
 			int32(g.stars[i].h),
 			g.stars[i].Colour)
 	}
+
+	/* Start Screen:
+	You is like a Spartan or something and you is being attacked and must use the defences
+	to protecc yourself rofl.
+	*/
+
 	if g.GameActive {
 		rl.DrawRectangleRec(g.Player.Rec, g.Player.Colour)
 
-		// Draw a beautiful starrry canopy
+		//Draw Defences
+		for i := range g.Defence {
+			rl.DrawRectangleRec(g.Defence[i].Rec, rl.Gray)
+		}
 
 		// Draw Bullets
 		for _, b := range g.Bullets {
@@ -274,6 +310,7 @@ func (g *Game) Draw() {
 				}
 			}
 		}
+
 	} else {
 		rl.ClearBackground(rl.Black)
 		// if g.PlayerScore >= 10 {
@@ -281,7 +318,8 @@ func (g *Game) Draw() {
 		// 	rl.DrawText(text, ScreenWidth/2-100, 200, 20, rl.Green)
 		// } else {
 		text := "You are lose. Hit enter to start again rofl."
-		rl.DrawText(text, ScreenWidth/2-250, 200, 20, rl.Red)
+		rl.DrawText(text, ScreenWidth/2-450, 200, 40, rl.Red)
+		// rl.DrawText(text, 50, 100, 40, rl.Red)
 		// }
 		if rl.IsKeyPressed(rl.KeyEnter) {
 			g.InitGame()
