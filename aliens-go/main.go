@@ -5,23 +5,27 @@ import (
 )
 
 const (
-	BulletSpeed  = 30
-	NumStars     = 9000
-	NumBullets   = 50
-	EnemySpeed   = 0
-	ScreenWidth  = 1600
-	ScreenHeight = 1200
+	BulletSpeed   = 30
+	NumStars      = 900
+	NumBullets    = 50
+	EnemySpeed    = 0.5
+	ScreenWidth   = 1600
+	ScreenHeight  = 1200
+	EnemiesWidth  = 60
+	EnemiesHeight = 80
+	EnemiesNumY   = 5
+	EnemiesNumX   = (ScreenWidth / (EnemiesWidth * 2)) - 1
 )
 
 type Game struct {
-	// ScreenWidth  int32
-	// ScreenHeight int32
 	GameActive  bool
 	PlayerScore int
+	MovingRight bool
+	EnemyBox    rl.Vector2
 
 	Player  Player
 	Bullets [NumBullets]Bullet
-	Enemies [13][13]Enemy
+	Enemies [EnemiesNumY][EnemiesNumX]Enemy
 	stars   [NumStars]Star
 }
 
@@ -38,9 +42,10 @@ type Bullet struct {
 }
 
 type Enemy struct {
-	Rec    rl.Rectangle
-	Colour rl.Color
-	Alive  bool
+	Rec       rl.Rectangle
+	Colour    rl.Color
+	Alive     bool
+	HitPoints int
 }
 
 type Star struct {
@@ -48,25 +53,6 @@ type Star struct {
 	w, h   float32
 	Colour rl.Color
 }
-
-// type RingBuffer struct {
-// 	data       []*Data
-// 	size       int
-// 	lastInsert int
-// 	nextRead   int
-// }
-
-// type Data struct {
-// 	Value string
-// }
-
-// func NewRingBuffer(size int) *RingBuffer {
-// 	return &RingBuffer{
-// 		data:       make([]*Data, size),
-// 		size:       size,
-// 		lastInsert: -1,
-// 	}
-// }
 
 func main() {
 	game := Game{}
@@ -77,6 +63,10 @@ func main() {
 	// defer rl.CloseWindow()
 
 	rl.SetTargetFPS(60)
+	// rl.GetFPS()
+
+	// var dT float32 = rl.GetFrameTime()
+	// gamespeed := dT * float32(rl.GetFPS())
 
 	for !rl.WindowShouldClose() {
 		game.Update()
@@ -104,10 +94,6 @@ func (g *Game) InitGame() {
 	}
 
 	// Initialise bullets
-	// b := Bullet{}
-	// b.Rec.Width = 5
-	// b.Rec.Height = 20
-	// b.Active = false
 	for i := range g.Bullets {
 		g.Bullets[i].Rec.Width = 5
 		g.Bullets[i].Rec.Height = 20
@@ -116,23 +102,20 @@ func (g *Game) InitGame() {
 		g.Bullets[i].Rec.Y = 0
 	}
 
-	// Initialise enemies
-	e := Enemy{}
-	e.Rec.Width = 60
-	e.Rec.Height = 80
-	var enemiesVertical int = 5
-	var enemiesHorizontal int32 = ScreenWidth / (2 * int32(e.Rec.Width))
-
-	for row := range enemiesVertical {
-		for i := range enemiesHorizontal {
+	for row := range EnemiesNumY {
+		for i := range EnemiesNumX {
+			g.Enemies[row][i].HitPoints = EnemiesNumY - row
 			g.Enemies[row][i].Alive = true
-			g.Enemies[row][i].Rec.Width = e.Rec.Width
-			g.Enemies[row][i].Rec.Height = e.Rec.Height
-			g.Enemies[row][i].Rec.X = g.Enemies[row][i].Rec.Width + 2*g.Enemies[row][i].Rec.Width*float32(i)
-			g.Enemies[row][i].Colour = rl.Blue
-			g.Enemies[row][i].Rec.Y = float32(row) * g.Enemies[row][i].Rec.Height * 2
+			g.Enemies[row][i].Rec.Width = EnemiesWidth
+			g.Enemies[row][i].Rec.Height = EnemiesHeight
+			g.Enemies[row][i].Rec.X = 2 * EnemiesWidth * float32(i)
+			g.Enemies[row][i].Colour = rl.Green
+			g.Enemies[row][i].Rec.Y = float32(row) * EnemiesHeight * 2
 		}
 	}
+
+	g.EnemyBox.X = 0
+	g.EnemyBox.Y = 2 * EnemiesWidth * EnemiesNumX
 }
 
 func (g *Game) HandleInputs() {
@@ -142,45 +125,23 @@ func (g *Game) HandleInputs() {
 	if rl.IsKeyDown(rl.KeyLeft) && g.Player.Rec.X > 0.0 {
 		g.Player.Rec.X -= g.Player.Speed
 	}
-	if rl.IsKeyDown(rl.KeyDown) && g.Player.Rec.Y < float32(ScreenHeight)-g.Player.Rec.Height {
-		g.Player.Rec.Y += g.Player.Speed
-	}
-	if rl.IsKeyDown(rl.KeyUp) && g.Player.Rec.Y > 0.0 {
-		g.Player.Rec.Y -= g.Player.Speed
-	}
-	if rl.IsKeyDown(rl.KeySpace) {
+	// if rl.IsKeyDown(rl.KeyDown) && g.Player.Rec.Y < float32(ScreenHeight)-g.Player.Rec.Height {
+	// 	g.Player.Rec.Y += g.Player.Speed
+	// }
+	// if rl.IsKeyDown(rl.KeyUp) && g.Player.Rec.Y > 0.0 {
+	// 	g.Player.Rec.Y -= g.Player.Speed
+	// }
+	if rl.IsKeyPressed(rl.KeySpace) {
 		g.Shoot()
 	}
 }
 
-// func (g *Game) Shoot() Bullet {
-// 	b := Bullet{}
-// 	b.Rec.X = g.Player.Rec.X + g.Player.Rec.Width/2 - b.Rec.Width/2
-// 	b.Rec.Y = g.Player.Rec.Y - b.Rec.Height
-// 	b.Rec.Width = 5
-// 	b.Rec.Height = 20
-// 	b.Active = true
-// g.Bullets = append(g.Bullets, b)
-
-// 	// for i := range g.Bullets {
-// 	// 	g.Bullets[i].Active = true
-// 	// 	g.Bullets[i].Rec.X = g.Player.Rec.X + g.Player.Rec.Width/2 - g.Bullets[i].Rec.Width/2
-// 	// 	g.Bullets[i].Rec.Y = g.Player.Rec.Y - g.Bullets[i].Rec.Height
-// 	// 	g.Bullets[i].Rec.Width = 5
-// 	// 	g.Bullets[i].Rec.Height = 20
-// 	// 	g.Bullets[i].Rec.Y -= BulletSpeed
-// 	// }
-// 	return b
-// }
-
 func (g *Game) Shoot() {
 	for i := range g.Bullets {
-		// i %= NumBullets
 		if !g.Bullets[i].Active {
 			g.Bullets[i].Active = true
 			g.Bullets[i].Rec.X = g.Player.Rec.X + g.Player.Rec.Width/2 - g.Bullets[i].Rec.Width/2
 			g.Bullets[i].Rec.Y = g.Player.Rec.Y - g.Bullets[i].Rec.Height
-			// fmt.Println(i)
 
 			break
 		}
@@ -201,10 +162,11 @@ func (g *Game) BulletLogic() {
 }
 
 func (g *Game) HandleCollisions() {
-	for i := range g.Enemies {
-		for j := range g.Enemies {
+	for i := range EnemiesNumY {
+		for j := range EnemiesNumX {
 			if rl.CheckCollisionRecs(g.Player.Rec, g.Enemies[i][j].Rec) {
 				g.Player.Health -= 1
+				g.Enemies[i][j].HitPoints--
 			}
 		}
 	}
@@ -213,9 +175,9 @@ func (g *Game) HandleCollisions() {
 			for k := range g.Enemies[j] {
 				if rl.CheckCollisionRecs(g.Bullets[i].Rec, g.Enemies[j][k].Rec) {
 					g.Bullets[i].Active = false
-					g.Enemies[j][k].Alive = false
-					g.Bullets[i].Rec.X = -1000
-					g.Enemies[j][k].Rec.X = -2000
+					g.Enemies[j][k].HitPoints--
+					g.Bullets[i].Rec.Y = -1000
+					// g.Enemies[j][k].Rec.X = -2000
 					g.PlayerScore++
 				}
 			}
@@ -224,9 +186,44 @@ func (g *Game) HandleCollisions() {
 }
 
 func (g *Game) EnemyBehaviour() {
+	if g.EnemyBox.Y >= ScreenWidth {
+		g.MovingRight = false
+	}
+	// if g.Enemies[i][j].Rec.X <= 50 {
+	if g.EnemyBox.X <= 50 {
+		g.MovingRight = true
+	}
+
 	for i := range g.Enemies {
 		for j := range g.Enemies[i] {
-			g.Enemies[i][j].Rec.Y += EnemySpeed
+			g.Enemies[i][j].Rec.Y += 0
+		}
+	}
+	if g.MovingRight {
+		for i := range g.Enemies {
+			for j := range g.Enemies[i] {
+				g.Enemies[i][j].Rec.X += EnemySpeed
+			}
+		}
+		g.EnemyBox.X += EnemySpeed
+		g.EnemyBox.Y += EnemySpeed
+	}
+	if !g.MovingRight {
+		for i := range g.Enemies {
+			for j := range g.Enemies[i] {
+				g.Enemies[i][j].Rec.X -= EnemySpeed
+			}
+		}
+		g.EnemyBox.X -= EnemySpeed
+		g.EnemyBox.Y -= EnemySpeed
+	}
+
+	for i := range g.Enemies {
+		for j := range g.Enemies[i] {
+			if g.Enemies[i][j].HitPoints <= 0 {
+				g.Enemies[i][j].Alive = false
+				g.Enemies[i][j].Rec.X = -1000
+			}
 		}
 	}
 }
@@ -241,6 +238,9 @@ func (g *Game) Update() {
 	if g.Player.Health <= 0 {
 		g.GameActive = false
 	}
+	// if g.PlayerScore >= 100 {
+	// 	g.GameActive = false
+	// }
 }
 
 func (g *Game) Draw() {
@@ -265,18 +265,20 @@ func (g *Game) Draw() {
 				rl.DrawRectangleRec(b.Rec, rl.Orange)
 			}
 		}
+
+		// Draw Enemies
 		for row := range g.Enemies {
-			for i := range g.Enemies {
+			for i := range g.Enemies[row] {
 				if g.Enemies[row][i].Alive {
 					rl.DrawRectangleRec(g.Enemies[row][i].Rec, g.Enemies[row][i].Colour)
 				}
 			}
 		}
 	} else {
-		// rl.ClearBackground(rl.Black)
+		rl.ClearBackground(rl.Black)
 		// if g.PlayerScore >= 10 {
 		// 	text := "YOUR WINNER!!! OMG!"
-		// 	rl.DrawText(text, g.ScreenWidth/2-100, 200, 20, rl.Green)
+		// 	rl.DrawText(text, ScreenWidth/2-100, 200, 20, rl.Green)
 		// } else {
 		text := "You are lose. Hit enter to start again rofl."
 		rl.DrawText(text, ScreenWidth/2-250, 200, 20, rl.Red)
