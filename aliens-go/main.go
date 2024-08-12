@@ -26,6 +26,7 @@ type Game struct {
 	EnemyBox     rl.Vector2
 	EnemiesAlive int
 	PlayerWon    bool
+	playerScore  int
 
 	Player       Player
 	Bullets      [NumBullets]Bullet
@@ -180,12 +181,12 @@ func (g *Game) HandleInputs() {
 	if rl.IsKeyDown(rl.KeyLeft) && g.Player.Rec.X > 0.0 {
 		g.Player.Rec.X -= g.Player.Speed
 	}
-	if rl.IsKeyDown(rl.KeyDown) && g.Player.Rec.Y < float32(ScreenHeight)-g.Player.Rec.Height {
-		g.Player.Rec.Y += g.Player.Speed
-	}
-	if rl.IsKeyDown(rl.KeyUp) && g.Player.Rec.Y > 0.0 {
-		g.Player.Rec.Y -= g.Player.Speed
-	}
+	// if rl.IsKeyDown(rl.KeyDown) && g.Player.Rec.Y < float32(ScreenHeight)-g.Player.Rec.Height {
+	// 	g.Player.Rec.Y += g.Player.Speed
+	// }
+	// if rl.IsKeyDown(rl.KeyUp) && g.Player.Rec.Y > 0.0 {
+	// 	g.Player.Rec.Y -= g.Player.Speed
+	// }
 	if rl.IsKeyDown(rl.KeySpace) {
 		g.Shoot()
 	}
@@ -245,10 +246,6 @@ func (g *Game) HandleCollisions() {
 			}
 		}
 	}
-	for i := range g.Defence {
-		if rl.CheckCollisionRecs(g.Player.Rec, g.Defence[i].Rec) {
-		}
-	}
 }
 
 func (g *Game) EnemyBehaviour() {
@@ -289,7 +286,6 @@ func (g *Game) EnemyBehaviour() {
 				if g.Enemies[i][j].HitPoints <= 0 {
 					g.Enemies[i][j].Alive = false
 					g.EnemiesAlive--
-					// fmt.Println(("Enemy got rekt"))
 					g.Enemies[i][j].Rec.X = -1000
 				}
 			}
@@ -300,13 +296,22 @@ func (g *Game) EnemyBehaviour() {
 func (g *Game) EnemyGoBoom() {
 	for i := range g.Enemies {
 		for j := range g.Enemies[i] {
+			if g.Enemies[i][j].Alive {
+				g.Enemies[i][j].Shooting = true
+			} else {
+				g.Enemies[i][j].Shooting = false
+			}
+		}
+	}
+	for i := range g.Enemies {
+		for j := range g.Enemies[i] {
 			if g.Enemies[i][j].Shooting {
 				if rl.GetTime() >= 1 {
 					if int32(rl.GetTime())%g.Enemies[i][j].BulletTimer == 0 {
 						for r := range g.EnemyBullets {
 							g.EnemyBullets[r].Active = true
-							// g.EnemyBullets[i].Rec.Y -= 10
-							g.EnemyBullets[r].Rec.X = g.Enemies[i][j].Rec.X + (g.Enemies[i][j].Rec.Width / 2)
+							g.EnemyBullets[i].Rec.Y += 10
+							g.EnemyBullets[r].Rec.X = g.Enemies[rl.GetRandomValue(0, int32(i))][j].Rec.X + (g.Enemies[i][j].Rec.Width / 2)
 							g.EnemyBullets[r].Rec.Y = g.Enemies[i][j].Rec.Y + g.Enemies[i][j].Rec.Height
 						}
 					}
@@ -314,8 +319,8 @@ func (g *Game) EnemyGoBoom() {
 			}
 		}
 	}
+
 	for i := range g.EnemyBullets {
-		g.EnemyBullets[i].Rec.Y += 10
 		if g.EnemyBullets[i].Rec.Y >= ScreenHeight {
 			g.EnemyBullets[i].Active = false
 		}
@@ -363,11 +368,6 @@ func (g *Game) Draw() {
 	Or: You is being attacked by aliens. You has like a space barricade or something and can
 	use it to defend yourself from alien goo-bullets.
 	*/
-
-	// var timeTaken int32
-	// if g.GameActive {
-	// 	timeTaken = int32(rl.GetTime())
-	// }
 
 	if g.GameActive {
 		rl.DrawRectangleRec(g.Player.Rec, g.Player.Colour)
