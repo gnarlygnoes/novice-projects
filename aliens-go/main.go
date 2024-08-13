@@ -7,17 +7,19 @@ import (
 )
 
 const (
-	BulletSpeed     = 30
-	NumStars        = 900
-	NumBullets      = 50
-	MaxEnemyBullets = 50
-	ScreenWidth     = 1000
-	ScreenHeight    = 1200
-	EnemyWidth      = 60
-	EnemyHeight     = 80
-	EnemyGridY      = 5
-	EnemyGridX      = 10
-	NumDefences     = 6
+	BulletSpeed         = 20
+	NumStars            = 900
+	NumBullets          = 50
+	ScreenWidth         = 1000
+	ScreenHeight        = 1200
+	EnemyWidth          = 60
+	EnemyHeight         = 80
+	EnemyGridY          = 5
+	EnemyGridX          = 10
+	NumDefences         = 6
+	BulletDisplacement  = -9000
+	EnemyDisplacement   = -6000
+	EBulletDisplacement = -12000
 )
 
 type Game struct {
@@ -31,6 +33,8 @@ type Game struct {
 	bulletTimer      int32
 	EnemyShoot       bool
 	enemySpeed       float32
+	enemyXLen        int
+	enemyXMin        int
 
 	Player      Player
 	Bullets     [NumBullets]Bullet
@@ -99,7 +103,7 @@ func main() {
 func (g *Game) InitGame() {
 	g.GameActive = true
 	g.playerScore = 0
-	g.bulletTimer = 4 //rl.GetRandomValue(4, 6)
+	g.bulletTimer = 5 //rl.GetRandomValue(4, 6)
 	g.EnemyShoot = false
 	g.enemySpeed = 0.5
 
@@ -143,6 +147,8 @@ func (g *Game) InitGame() {
 	}
 	g.EnemyHBox.X = 11
 	g.EnemyHBox.Y = (EnemyWidth + 15) * EnemyGridX
+	g.enemyXLen = EnemyGridX - 1
+	g.enemyXMin = 0
 
 	// Initialise enemy bullets
 	g.EnemyBullet.Shoot = false
@@ -176,7 +182,7 @@ func (g *Game) HandleInputs() {
 	// if rl.IsKeyDown(rl.KeyUp) && g.Player.Rec.Y > 0.0 {
 	// 	g.Player.Rec.Y -= g.Player.Speed
 	// }
-	if rl.IsKeyPressed(rl.KeySpace) {
+	if rl.IsKeyDown(rl.KeySpace) {
 		g.Shoot()
 	}
 	if rl.IsKeyPressed(rl.KeyF2) {
@@ -223,13 +229,24 @@ func (g *Game) HandleCollisions() {
 		}
 	}
 
+	for i := range g.Enemies {
+		for _, e := range g.Enemies[i] {
+			for _, d := range g.Defence {
+				if rl.CheckCollisionRecs(e.Rec, d.Rec) {
+					fmt.Println("CRASH!")
+					g.GameActive = false
+				}
+			}
+		}
+	}
+
 	for i := range g.Bullets {
 		for j := range g.Enemies {
 			for k := range g.Enemies[j] {
 				if rl.CheckCollisionRecs(g.Bullets[i].Rec, g.Enemies[j][k].Rec) {
 					g.Bullets[i].Active = false
 					g.Enemies[j][k].HitPoints--
-					g.Bullets[i].Rec.X = -1000
+					g.Bullets[i].Rec.X = BulletDisplacement
 				}
 			}
 		}
@@ -237,7 +254,7 @@ func (g *Game) HandleCollisions() {
 		for j := range g.Defence {
 			if rl.CheckCollisionRecs(g.Bullets[i].Rec, g.Defence[j].Rec) {
 				g.Bullets[i].Active = false
-				g.Bullets[i].Rec.Y = -1000
+				g.Bullets[i].Rec.X = BulletDisplacement
 				g.Defence[j].Health--
 			}
 		}
@@ -245,20 +262,20 @@ func (g *Game) HandleCollisions() {
 		if rl.CheckCollisionRecs(g.Bullets[i].Rec, g.EnemyBullet.Rec) {
 			g.Bullets[i].Active = false
 			g.Bullets[i].Rec.X = -1000
-			g.EnemyBullet.Rec.X = -3000
+			g.EnemyBullet.Rec.X = BulletDisplacement
 			// g.EnemyBullet.Shoot = false
 		}
 	}
 
 	if rl.CheckCollisionRecs(g.EnemyBullet.Rec, g.Player.Rec) {
 		g.EnemyBullet.Shoot = false
-		g.EnemyBullet.Rec.Y = -2000
+		g.EnemyBullet.Rec.X = EBulletDisplacement
 		g.Player.Health--
 	}
 	for i := range g.Defence {
 		if rl.CheckCollisionRecs(g.EnemyBullet.Rec, g.Defence[i].Rec) {
 			g.EnemyBullet.Shoot = false
-			g.EnemyBullet.Rec.Y = -2000
+			g.EnemyBullet.Rec.X = EBulletDisplacement
 			g.Defence[i].Health--
 		}
 	}
@@ -269,7 +286,7 @@ func (g *Game) EnemyBehaviour() {
 		g.MovingRight = false
 		for i := range g.Enemies {
 			for j := range g.Enemies[i] {
-				g.Enemies[i][j].Rec.Y += 40
+				g.Enemies[i][j].Rec.Y += 30
 			}
 		}
 	}
@@ -277,7 +294,7 @@ func (g *Game) EnemyBehaviour() {
 		g.MovingRight = true
 		for i := range g.Enemies {
 			for j := range g.Enemies[i] {
-				g.Enemies[i][j].Rec.Y += 40
+				g.Enemies[i][j].Rec.Y += 30
 			}
 		}
 	}
@@ -301,6 +318,8 @@ func (g *Game) EnemyBehaviour() {
 		g.EnemyHBox.Y -= g.enemySpeed
 	}
 
+	eMaxAlive := 0
+	eMinAlive := 0
 	for i := range g.Enemies {
 		for j := range g.Enemies[i] {
 			if g.Enemies[i][j].Alive {
@@ -310,6 +329,23 @@ func (g *Game) EnemyBehaviour() {
 					g.Enemies[i][j].Rec.X = -1000
 					g.playerScore += 100
 				}
+			}
+		}
+		if g.enemyXLen > 0 {
+			if g.Enemies[i][g.enemyXLen].Alive {
+				eMaxAlive++
+			}
+			if eMaxAlive == 0 {
+				g.enemyXLen--
+				g.EnemyHBox.Y -= (EnemyWidth + 15)
+			}
+
+			if g.Enemies[i][g.enemyXMin].Alive {
+				eMinAlive++
+			}
+			if eMinAlive == 0 {
+				g.enemyXMin++
+				g.EnemyHBox.X += (EnemyWidth + 15)
 			}
 		}
 	}
@@ -349,26 +385,28 @@ func (g *Game) DefenceBehaviour() {
 
 func (g *Game) Update() {
 	g.HandleInputs()
-	g.BulletLogic()
-	g.HandleCollisions()
-	g.EnemyBehaviour()
-	g.EnemyGoBoom()
-	g.DefenceBehaviour()
+	if g.GameActive {
+		g.BulletLogic()
+		g.HandleCollisions()
+		g.EnemyBehaviour()
+		g.EnemyGoBoom()
+		g.DefenceBehaviour()
 
-	switch g.playerScore {
-	case 1000:
-		g.enemySpeed = .75
-	case 2000:
-		g.enemySpeed = 1
-		g.bulletTimer = 3
-	case 3000:
-		g.enemySpeed = 1.5
-		g.bulletTimer = 2
-	case 4000:
-		g.enemySpeed = 3
-		g.bulletTimer = 1
-	case 4900:
-		g.enemySpeed = 10
+		switch g.playerScore {
+		case 1000:
+			g.enemySpeed = .75
+		case 2000:
+			g.enemySpeed = 1
+			g.bulletTimer = 4
+		case 3000:
+			g.enemySpeed = 1.5
+			g.bulletTimer = 3
+		case 4000:
+			g.enemySpeed = 3
+			g.bulletTimer = 2
+		case 4900:
+			g.enemySpeed = 10
+		}
 	}
 	// Endgame scenaria.
 	if g.Player.Health <= 0 {
@@ -438,6 +476,11 @@ func (g *Game) Draw() {
 		rl.DrawText(fmt.Sprint("Score: ", g.playerScore), ScreenWidth-200, ScreenHeight-40, 30, rl.White)
 	} else if !g.GameActive && g.PlayerWon {
 		rl.ClearBackground(rl.Black)
+		for i := range g.Enemies {
+			for _, e := range g.Enemies[i] {
+				e.Rec.X = EnemyDisplacement
+			}
+		}
 		text := "YOU'RE WINNER ! OMG! \n\n\tSo proud of u."
 		rl.DrawText(text, ScreenWidth/2-100, 200, 20, rl.Green)
 		if rl.IsKeyPressed(rl.KeyEnter) {
@@ -446,6 +489,8 @@ func (g *Game) Draw() {
 	} else {
 		text := "You are lose. Hit enter to start again rofl."
 		rl.DrawText(text, ScreenWidth/2-450, 200, 40, rl.Red)
+		rl.DrawText(fmt.Sprint("Scorus finalis: ", g.playerScore), ScreenWidth/2-450, 400, 40, rl.White)
+		// rl.DrawText(fmt.Sprint("Dat means u killed "))
 		if rl.IsKeyPressed(rl.KeyEnter) {
 			g.InitGame()
 		}
