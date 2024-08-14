@@ -17,6 +17,8 @@ const (
 	EnemyGridY          = 5
 	EnemyGridX          = 10
 	NumDefences         = 6
+	DefenceHeight       = 100
+	DefencePositionY    = ScreenHeight - 200 - DefenceHeight
 	BulletDisplacement  = -9000
 	EnemyDisplacement   = -6000
 	EBulletDisplacement = -12000
@@ -34,6 +36,8 @@ type Game struct {
 	enemySpeed   float32
 	enemyXLen    int
 	enemyXMin    int
+	// defencesHold   bool
+	// activeDefences int
 
 	Player      Player
 	Bullets     [NumBullets]Bullet
@@ -105,6 +109,8 @@ func (g *Game) InitGame() {
 	g.bulletTimer = 5 //rl.GetRandomValue(4, 6)
 	g.enemyShoot = false
 	g.enemySpeed = 0.5
+	// g.defencesHold = true
+	// g.activeDefences = NumDefences
 
 	// Initialise player
 	g.Player.Rec.Width = 60
@@ -159,9 +165,9 @@ func (g *Game) InitGame() {
 	// Initialise defences
 	for i := range g.Defence {
 		g.Defence[i].Rec.Width = ScreenWidth / 12
-		g.Defence[i].Rec.Height = 100
+		g.Defence[i].Rec.Height = DefenceHeight
 		g.Defence[i].Rec.X = 50 + ScreenWidth/(6/float32(i)) + float32(5*i)
-		g.Defence[i].Rec.Y = ScreenHeight - 200 - g.Defence[i].Rec.Height
+		g.Defence[i].Rec.Y = DefencePositionY
 		g.Defence[i].Health = 10
 		g.Defence[i].Active = true
 		// d.Colour = rl.Gray
@@ -228,16 +234,16 @@ func (g *Game) HandleCollisions() {
 		}
 	}
 
-	for i := range g.Enemies {
-		for _, e := range g.Enemies[i] {
-			for _, d := range g.Defence {
-				if rl.CheckCollisionRecs(e.Rec, d.Rec) {
-					fmt.Println("CRASH!")
-					g.gameActive = false
-				}
-			}
-		}
-	}
+	// for i := range g.Enemies {
+	// 	for _, e := range g.Enemies[i] {
+	// 		for _, d := range g.Defence {
+	// 			if rl.CheckCollisionRecs(e.Rec, d.Rec) {
+	// 				fmt.Println("CRASH!")
+	// 				g.gameActive = false
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	for i := range g.Bullets {
 		for j := range g.Enemies {
@@ -262,7 +268,6 @@ func (g *Game) HandleCollisions() {
 			g.Bullets[i].Active = false
 			g.Bullets[i].Rec.X = -1000
 			g.EnemyBullet.Rec.X = BulletDisplacement
-			// g.EnemyBullet.Shoot = false
 		}
 	}
 
@@ -281,11 +286,20 @@ func (g *Game) HandleCollisions() {
 }
 
 func (g *Game) EnemyBehaviour() {
+	// var NumDefences int
+	// fmt.Println("Active defences: ", g.activeDefences)
 	if g.enemyHBox.Y >= ScreenWidth {
 		g.movingRight = false
 		for i := range g.Enemies {
 			for j := range g.Enemies[i] {
-				g.Enemies[i][j].Rec.Y += 30
+				// if g.activeDefences > 0 {
+				if g.Enemies[4][j].Rec.Y < DefencePositionY-DefenceHeight-15 {
+					g.Enemies[i][j].Rec.Y += 30
+				}
+				// } else {
+				// 	g.Enemies[i][j].Rec.Y += 30
+				// }
+
 			}
 		}
 	}
@@ -293,7 +307,9 @@ func (g *Game) EnemyBehaviour() {
 		g.movingRight = true
 		for i := range g.Enemies {
 			for j := range g.Enemies[i] {
-				g.Enemies[i][j].Rec.Y += 30
+				if g.Enemies[4][j].Rec.Y < DefencePositionY-DefenceHeight-15 {
+					g.Enemies[i][j].Rec.Y += 30
+				}
 			}
 		}
 	}
@@ -380,9 +396,17 @@ func (g *Game) DefenceBehaviour() {
 	for i := range g.Defence {
 		if g.Defence[i].Health <= 0 {
 			g.Defence[i].Active = false
-			g.Defence[i].Rec.X = -3000
+			g.Defence[i].Rec.X = -15000
+			// g.activeDefences--
 		}
 	}
+	// for i := range g.Defence {
+	// 	if g.Defence[i].Active {
+	// 		break
+	// 	} else {
+	// 		g.defencesHold = false
+	// 	}
+	// }
 }
 
 func (g *Game) Update() {
@@ -399,13 +423,13 @@ func (g *Game) Update() {
 			g.enemySpeed = .75
 		case 2000:
 			g.enemySpeed = 1
-			g.bulletTimer = 4
+			g.bulletTimer = 3
 		case 3000:
 			g.enemySpeed = 1.5
-			g.bulletTimer = 3
+			g.bulletTimer = 2
 		case 4000:
 			g.enemySpeed = 3
-			g.bulletTimer = 2
+			g.bulletTimer = 1
 		case 4900:
 			g.enemySpeed = 10
 		}
