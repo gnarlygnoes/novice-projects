@@ -12,8 +12,8 @@ const (
 	NumBullets          = 50
 	ScreenWidth         = 1000
 	ScreenHeight        = 1200
-	EnemyWidth          = 60
-	EnemyHeight         = 80
+	EnemyWidth          = 70
+	EnemyHeight         = 70
 	EnemyGridY          = 5
 	EnemyGridX          = 10
 	NumDefences         = 6
@@ -36,8 +36,6 @@ type Game struct {
 	enemySpeed   float32
 	enemyXLen    int
 	enemyXMin    int
-	// defencesHold   bool
-	// activeDefences int
 
 	Player      Player
 	Bullets     [NumBullets]Bullet
@@ -109,8 +107,6 @@ func (g *Game) InitGame() {
 	g.bulletTimer = 5 //rl.GetRandomValue(4, 6)
 	g.enemyShoot = false
 	g.enemySpeed = 0.5
-	// g.defencesHold = true
-	// g.activeDefences = NumDefences
 
 	// Initialise player
 	g.Player.Rec.Width = 60
