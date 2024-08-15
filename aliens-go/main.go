@@ -17,8 +17,8 @@ const (
 	EnemyGridY          = 5
 	EnemyGridX          = 10
 	NumDefences         = 4
-	DefenceHeight       = 100
-	DefenceWidth        = 200
+	DefenceHeight       = 60
+	DefenceWidth        = 120
 	DefencePositionY    = ScreenHeight - 200 - DefenceHeight
 	BulletDisplacement  = -9000
 	EnemyDisplacement   = -6000
