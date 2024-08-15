@@ -12,8 +12,8 @@ const (
 	NumBullets          = 50
 	ScreenWidth         = 1000
 	ScreenHeight        = 1200
-	EnemyWidth          = 70
-	EnemyHeight         = 70
+	EnemyWidth          = 75
+	EnemyHeight         = 75
 	EnemyGridY          = 5
 	EnemyGridX          = 10
 	NumDefences         = 6
