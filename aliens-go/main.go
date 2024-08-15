@@ -16,8 +16,9 @@ const (
 	EnemyHeight         = 75
 	EnemyGridY          = 5
 	EnemyGridX          = 10
-	NumDefences         = 6
+	NumDefences         = 4
 	DefenceHeight       = 100
+	DefenceWidth        = 200
 	DefencePositionY    = ScreenHeight - 200 - DefenceHeight
 	BulletDisplacement  = -9000
 	EnemyDisplacement   = -6000
@@ -36,6 +37,13 @@ type Game struct {
 	enemySpeed   float32
 	enemyXLen    int
 	enemyXMin    int
+	gameTexture  rl.Texture2D
+	texSegmentH  int32
+	texSegmentV  int32
+
+	// enemyTex rl.Texture2D
+	// enemyRec rl.Rectangle
+	// enemyPos rl.Vector2
 
 	Player      Player
 	Bullets     [NumBullets]Bullet
@@ -46,9 +54,11 @@ type Game struct {
 }
 
 type Player struct {
+	RecIn  rl.Rectangle
 	Rec    rl.Rectangle
-	Speed  float32
+	Pos    rl.Vector2
 	Colour rl.Color
+	Speed  float32
 	Health int32
 }
 
@@ -58,7 +68,9 @@ type Bullet struct {
 }
 
 type Enemy struct {
+	RecIn     rl.Rectangle
 	Rec       rl.Rectangle
+	Pos       rl.Vector2
 	Colour    rl.Color
 	Alive     bool
 	HitPoints int
@@ -77,7 +89,9 @@ type Star struct {
 }
 
 type Defence struct {
+	RecIn  rl.Rectangle
 	Rec    rl.Rectangle
+	Pos    rl.Vector2
 	Colour rl.Color
 	Health int32
 	Active bool
@@ -107,12 +121,31 @@ func (g *Game) InitGame() {
 	g.bulletTimer = 5 //rl.GetRandomValue(4, 6)
 	g.enemyShoot = false
 	g.enemySpeed = 0.5
+	g.gameTexture = rl.LoadTexture("img/SpaceInvaders.png")
+	g.texSegmentH = g.gameTexture.Width / 7
+	g.texSegmentV = g.gameTexture.Height / 5
+
+	// g.enemyTex = rl.LoadTexture("img/SpaceInvaders.png")
+	// g.enemyRec.Width = float32(g.enemyTex.Width) / 14
+	// g.enemyRec.Height = float32(g.enemyTex.Height) / 10
+	// g.enemyRec.X = 0
+	// g.enemyRec.Y = 0
 
 	// Initialise player
-	g.Player.Rec.Width = 60
+	// g.Player.Tex = rl.LoadTexture("img/SpaceInvaders.png")
+
+	// fmt.Println("Texture Width: ", g.Player.Tex.Width)
+	g.Player.RecIn.Width = float32(g.gameTexture.Width) / 7
+	g.Player.RecIn.Height = float32(g.gameTexture.Height) / 5
+	g.Player.RecIn.X = float32(g.texSegmentH) * 4
+	g.Player.RecIn.Y = 0
+	g.Player.Rec.Width = 80
 	g.Player.Rec.Height = 80
 	g.Player.Rec.X = float32(ScreenWidth/2 - int32(g.Player.Rec.Width/2))
 	g.Player.Rec.Y = float32(ScreenHeight - int32(g.Player.Rec.Height))
+	g.Player.Pos.X = 0 // g.Player.Rec.X
+	g.Player.Pos.Y = 0 // g.Player.Rec.Y
+
 	g.Player.Speed = 10
 	g.Player.Health = 3
 	g.Player.Colour = rl.Red
@@ -160,11 +193,12 @@ func (g *Game) InitGame() {
 
 	// Initialise defences
 	for i := range g.Defence {
-		g.Defence[i].Rec.Width = ScreenWidth / 12
+		g.Defence[i].Rec.Width = DefenceWidth
 		g.Defence[i].Rec.Height = DefenceHeight
-		g.Defence[i].Rec.X = 50 + ScreenWidth/(6/float32(i)) + float32(5*i)
+		// g.Defence[i].Rec.X = 50 + ScreenWidth/(4/float32(i)) + float32(5*i)
+		g.Defence[i].Rec.X = float32(ScreenWidth/4) * float32(i)
 		g.Defence[i].Rec.Y = DefencePositionY
-		g.Defence[i].Health = 10
+		g.Defence[i].Health = 20
 		g.Defence[i].Active = true
 		// d.Colour = rl.Gray
 	}
@@ -463,13 +497,27 @@ func (g *Game) Draw() {
 	*/
 
 	if g.gameActive {
+		rl.DrawTexturePro(g.gameTexture, g.Player.RecIn, g.Player.Rec, g.Player.Pos, 0, g.Player.Colour)
+		// rl.DrawRectangleRec(g.Player.Rec, g.Player.Colour)
+		// rl.DrawTextureRec(g.Player.Tex, g.Player.Rec, g.Player.Pos, g.Player.Colour)
 
-		rl.DrawRectangleRec(g.Player.Rec, g.Player.Colour)
+		// rl.DrawTexturePro()
 
 		//Draw defences
 		for _, d := range g.Defence {
 			if d.Active {
-				rl.DrawRectangleRec(d.Rec, rl.Gray)
+				d.RecIn.Width = float32(g.texSegmentH) * 2
+				d.RecIn.Height = float32(g.texSegmentV)
+				d.RecIn.X = 3 * float32(g.texSegmentH)
+				if d.Health > 15 {
+					// rl.DrawRectangleRec(d.Rec, rl.Gray)
+					d.RecIn.Y = float32(g.texSegmentV)
+				} else if d.Health > 8 {
+					d.RecIn.Y = 2 * float32(g.texSegmentV)
+				} else {
+					d.RecIn.Y = 3 * float32(g.texSegmentV)
+				}
+				rl.DrawTexturePro(g.gameTexture, d.RecIn, d.Rec, d.Pos, 0, rl.Gray)
 			}
 		}
 
@@ -483,8 +531,25 @@ func (g *Game) Draw() {
 		// Draw enemies
 		for i := range g.Enemies {
 			for _, e := range g.Enemies[i] {
+				e.RecIn.Width = float32(g.texSegmentH)
+				e.RecIn.Height = float32(g.texSegmentV)
+				e.RecIn.X = 0
+				if i == 0 {
+					e.RecIn.Y = 0
+				} else if i == 1 {
+					e.RecIn.Y = float32(g.texSegmentV)
+				} else if i == 2 {
+					e.RecIn.Y = float32(g.texSegmentV) * 2
+				} else if i == 3 {
+					e.RecIn.Y = float32(g.texSegmentV) * 3
+				} else {
+					e.RecIn.Y = float32(g.texSegmentV) * 4
+				}
 				if e.Alive {
-					rl.DrawRectangleRec(e.Rec, e.Colour)
+					// rl.DrawRectangleRec(e.Rec, e.Colour)
+					// rl.DrawTextureRec(g.enemyTex, g.enemyRec, g.enemyHBox, e.Colour)
+					// rl.DrawTextureRec()
+					rl.DrawTexturePro(g.gameTexture, e.RecIn, e.Rec, e.Pos, 0, rl.Green)
 				}
 			}
 		}
