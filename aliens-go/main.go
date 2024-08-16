@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	BulletSpeed         = 20
 	NumStars            = 900
 	NumBullets          = 50
 	ScreenWidth         = 1000
@@ -33,13 +32,22 @@ type Game struct {
 	playerWon    bool
 	playerScore  int
 	bulletTimer  int32
-	enemyShoot   bool
-	enemySpeed   float32
-	enemyXLen    int
-	enemyXMin    int
-	gameTexture  rl.Texture2D
-	texSegmentH  int32
-	texSegmentV  int32
+	// enemyShoot   bool
+	// enemySpeed   float32
+	enemyXLen   int
+	enemyXMin   int
+	gameTexture rl.Texture2D
+	texSegmentH int32
+	texSegmentV int32
+	dt          float32
+	updateTime  float32
+	runningTime float32
+
+	enemySpeed  float32
+	playerSpeed float32
+	bulletSpeed float32
+
+	frame int32
 
 	// enemyTex rl.Texture2D
 	// enemyRec rl.Rectangle
@@ -58,13 +66,14 @@ type Player struct {
 	Rec    rl.Rectangle
 	Pos    rl.Vector2
 	Colour rl.Color
-	Speed  float32
+	// Speed  float32
 	Health int32
 }
 
 type Bullet struct {
 	Rec    rl.Rectangle
 	Active bool
+	// Speed  float32
 }
 
 type Enemy struct {
@@ -75,11 +84,13 @@ type Enemy struct {
 	Alive     bool
 	HitPoints int
 	Shooting  bool
+	// Speed     float32
 }
 
 type EnemyBullet struct {
 	Rec   rl.Rectangle
 	Shoot bool
+	// Speed float32
 }
 
 type Star struct {
@@ -98,15 +109,29 @@ type Defence struct {
 }
 
 func main() {
-	game := Game{}
-	rl.InitWindow(ScreenWidth, ScreenHeight, "Aliens of Golang")
+	game := Game{
+		// gameActive:  true,
+		// playerScore: 0,
+		// bulletTimer: 5,
+		// enemyShoot:  false,
+		// enemySpeed:  0.5,
+		// gameTexture: rl.LoadTexture("img/SpaceInvaders.png"),
+		// // texSegmentH: gameTexture.Width / 7,
+		// // texSegmentV: gameTexture.Height / 5,
+		// // Player:
+		playerSpeed: 1000,
+		enemySpeed:  20,
+		bulletSpeed: 2000,
+		updateTime:  0.5, // / 12.0,
+		runningTime: 0,
+	}
+	rl.InitWindow(ScreenWidth, ScreenHeight, "Aliens Go Home!")
 
 	game.InitGame()
 
 	defer rl.CloseWindow()
 
-	rl.SetTargetFPS(60)
-	// rl.GetFPS()
+	rl.SetTargetFPS(120)
 
 	for !rl.WindowShouldClose() {
 		game.Update()
@@ -118,9 +143,10 @@ func main() {
 func (g *Game) InitGame() {
 	g.gameActive = true
 	g.playerScore = 0
-	g.bulletTimer = 5 //rl.GetRandomValue(4, 6)
-	g.enemyShoot = false
-	g.enemySpeed = 0.5
+	g.bulletTimer = 5
+
+	g.frame = 0
+
 	g.gameTexture = rl.LoadTexture("img/SpaceInvaders.png")
 	g.texSegmentH = g.gameTexture.Width / 7
 	g.texSegmentV = g.gameTexture.Height / 5
@@ -146,7 +172,7 @@ func (g *Game) InitGame() {
 	g.Player.Pos.X = 0 // g.Player.Rec.X
 	g.Player.Pos.Y = 0 // g.Player.Rec.Y
 
-	g.Player.Speed = 10
+	// g.playerSpeed = 10
 	g.Player.Health = 3
 	g.Player.Colour = rl.Red
 
@@ -195,21 +221,19 @@ func (g *Game) InitGame() {
 	for i := range g.Defence {
 		g.Defence[i].Rec.Width = DefenceWidth
 		g.Defence[i].Rec.Height = DefenceHeight
-		// g.Defence[i].Rec.X = 50 + ScreenWidth/(4/float32(i)) + float32(5*i)
 		g.Defence[i].Rec.X = float32(ScreenWidth/4) * float32(i)
 		g.Defence[i].Rec.Y = DefencePositionY
 		g.Defence[i].Health = 20
 		g.Defence[i].Active = true
-		// d.Colour = rl.Gray
 	}
 }
 
 func (g *Game) HandleInputs() {
 	if rl.IsKeyDown(rl.KeyRight) && g.Player.Rec.X < float32(ScreenWidth)-g.Player.Rec.Width {
-		g.Player.Rec.X += g.Player.Speed
+		g.Player.Rec.X += g.playerSpeed * g.dt
 	}
 	if rl.IsKeyDown(rl.KeyLeft) && g.Player.Rec.X > 0.0 {
-		g.Player.Rec.X -= g.Player.Speed
+		g.Player.Rec.X -= g.playerSpeed * g.dt
 	}
 	// if rl.IsKeyDown(rl.KeyDown) && g.Player.Rec.Y < float32(ScreenHeight)-g.Player.Rec.Height {
 	// 	g.Player.Rec.Y += g.Player.Speed
@@ -246,7 +270,7 @@ func (g *Game) Shoot() {
 func (g *Game) BulletLogic() {
 	for i := range g.Bullets {
 		if g.Bullets[i].Active {
-			g.Bullets[i].Rec.Y -= BulletSpeed
+			g.Bullets[i].Rec.Y -= g.bulletSpeed * g.dt
 			if g.Bullets[i].Rec.Y < 0 {
 				g.Bullets[i].Active = false
 			}
@@ -263,17 +287,6 @@ func (g *Game) HandleCollisions() {
 			}
 		}
 	}
-
-	// for i := range g.Enemies {
-	// 	for _, e := range g.Enemies[i] {
-	// 		for _, d := range g.Defence {
-	// 			if rl.CheckCollisionRecs(e.Rec, d.Rec) {
-	// 				fmt.Println("CRASH!")
-	// 				g.gameActive = false
-	// 			}
-	// 		}
-	// 	}
-	// }
 
 	for i := range g.Bullets {
 		for j := range g.Enemies {
@@ -292,6 +305,11 @@ func (g *Game) HandleCollisions() {
 				g.Bullets[i].Rec.X = BulletDisplacement
 				g.Defence[j].Health--
 			}
+			if rl.CheckCollisionRecs(g.EnemyBullet.Rec, g.Defence[j].Rec) {
+				g.EnemyBullet.Shoot = false
+				g.EnemyBullet.Rec.X = EBulletDisplacement
+				g.Defence[i].Health--
+			}
 		}
 
 		if rl.CheckCollisionRecs(g.Bullets[i].Rec, g.EnemyBullet.Rec) {
@@ -306,37 +324,22 @@ func (g *Game) HandleCollisions() {
 		g.EnemyBullet.Rec.X = EBulletDisplacement
 		g.Player.Health--
 	}
-	for i := range g.Defence {
-		if rl.CheckCollisionRecs(g.EnemyBullet.Rec, g.Defence[i].Rec) {
-			g.EnemyBullet.Shoot = false
-			g.EnemyBullet.Rec.X = EBulletDisplacement
-			g.Defence[i].Health--
-		}
-	}
 }
 
 func (g *Game) EnemyBehaviour() {
-	// var NumDefences int
-	// fmt.Println("Active defences: ", g.activeDefences)
-	if g.enemyHBox.Y >= ScreenWidth {
-		g.movingRight = false
-		for i := range g.Enemies {
-			for j := range g.Enemies[i] {
-				// if g.activeDefences > 0 {
+	for i := range g.Enemies {
+		for j := range g.Enemies[i] {
+			if g.enemyHBox.Y >= ScreenWidth {
+				g.movingRight = false
+
 				if g.Enemies[4][j].Rec.Y < DefencePositionY-DefenceHeight-15 {
 					g.Enemies[i][j].Rec.Y += 30
 				}
-				// } else {
-				// 	g.Enemies[i][j].Rec.Y += 30
-				// }
 
 			}
-		}
-	}
-	if g.enemyHBox.X <= 10 {
-		g.movingRight = true
-		for i := range g.Enemies {
-			for j := range g.Enemies[i] {
+			if g.enemyHBox.X <= 10 {
+				g.movingRight = true
+
 				if g.Enemies[4][j].Rec.Y < DefencePositionY-DefenceHeight-15 {
 					g.Enemies[i][j].Rec.Y += 30
 				}
@@ -347,20 +350,20 @@ func (g *Game) EnemyBehaviour() {
 	if g.movingRight {
 		for i := range g.Enemies {
 			for j := range g.Enemies[i] {
-				g.Enemies[i][j].Rec.X += float32(g.enemySpeed)
+				g.Enemies[i][j].Rec.X += g.enemySpeed * g.dt
 			}
 		}
-		g.enemyHBox.X += g.enemySpeed
-		g.enemyHBox.Y += g.enemySpeed
+		g.enemyHBox.X += g.enemySpeed * g.dt
+		g.enemyHBox.Y += g.enemySpeed * g.dt
 	}
 	if !g.movingRight {
 		for i := range g.Enemies {
 			for j := range g.Enemies[i] {
-				g.Enemies[i][j].Rec.X -= g.enemySpeed
+				g.Enemies[i][j].Rec.X -= g.enemySpeed * g.dt
 			}
 		}
-		g.enemyHBox.X -= g.enemySpeed
-		g.enemyHBox.Y -= g.enemySpeed
+		g.enemyHBox.X -= g.enemySpeed * g.dt
+		g.enemyHBox.Y -= g.enemySpeed * g.dt
 	}
 
 	eMaxAlive := 0
@@ -415,7 +418,7 @@ func (g *Game) EnemyGoBoom() {
 	}
 
 	if g.EnemyBullet.Shoot {
-		g.EnemyBullet.Rec.Y += BulletSpeed
+		g.EnemyBullet.Rec.Y += g.bulletSpeed * g.dt
 		if g.EnemyBullet.Rec.Y > ScreenHeight {
 			g.EnemyBullet.Shoot = false
 		}
@@ -427,19 +430,16 @@ func (g *Game) DefenceBehaviour() {
 		if g.Defence[i].Health <= 0 {
 			g.Defence[i].Active = false
 			g.Defence[i].Rec.X = -15000
-			// g.activeDefences--
 		}
 	}
-	// for i := range g.Defence {
-	// 	if g.Defence[i].Active {
-	// 		break
-	// 	} else {
-	// 		g.defencesHold = false
-	// 	}
-	// }
 }
 
 func (g *Game) Update() {
+	g.dt = rl.GetFrameTime()
+
+	g.runningTime += g.dt
+	fmt.Println(g.runningTime)
+
 	g.HandleInputs()
 	if g.gameActive {
 		g.BulletLogic()
@@ -450,18 +450,18 @@ func (g *Game) Update() {
 
 		switch g.playerScore {
 		case 1000:
-			g.enemySpeed = .75
+			g.enemySpeed = 30
 		case 2000:
-			g.enemySpeed = 1
+			g.enemySpeed = 50
 			g.bulletTimer = 3
 		case 3000:
-			g.enemySpeed = 1.5
+			g.enemySpeed = 80
 			g.bulletTimer = 2
 		case 4000:
-			g.enemySpeed = 3
+			g.enemySpeed = 120
 			g.bulletTimer = 1
 		case 4900:
-			g.enemySpeed = 10
+			g.enemySpeed = 200
 		}
 	}
 	// Endgame scenaria.
@@ -529,27 +529,35 @@ func (g *Game) Draw() {
 		}
 
 		// Draw enemies
+		if g.runningTime >= g.updateTime {
+			g.frame++
+			if g.frame > 1 {
+				g.frame = 0
+			}
+			g.runningTime = 0
+		}
+		var enemyColour rl.Color = rl.Red
 		for i := range g.Enemies {
 			for _, e := range g.Enemies[i] {
 				e.RecIn.Width = float32(g.texSegmentH)
 				e.RecIn.Height = float32(g.texSegmentV)
-				e.RecIn.X = 0
+				e.RecIn.X = float32(g.frame) * e.RecIn.Width
 				if i == 0 {
 					e.RecIn.Y = 0
 				} else if i == 1 {
 					e.RecIn.Y = float32(g.texSegmentV)
 				} else if i == 2 {
 					e.RecIn.Y = float32(g.texSegmentV) * 2
+					enemyColour = rl.Orange
 				} else if i == 3 {
 					e.RecIn.Y = float32(g.texSegmentV) * 3
+					enemyColour = rl.Yellow
 				} else {
 					e.RecIn.Y = float32(g.texSegmentV) * 4
+					enemyColour = rl.Green
 				}
 				if e.Alive {
-					// rl.DrawRectangleRec(e.Rec, e.Colour)
-					// rl.DrawTextureRec(g.enemyTex, g.enemyRec, g.enemyHBox, e.Colour)
-					// rl.DrawTextureRec()
-					rl.DrawTexturePro(g.gameTexture, e.RecIn, e.Rec, e.Pos, 0, rl.Green)
+					rl.DrawTexturePro(g.gameTexture, e.RecIn, e.Rec, e.Pos, 0, enemyColour)
 				}
 			}
 		}
