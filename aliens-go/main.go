@@ -11,6 +11,7 @@ const (
 	NumBullets          = 50
 	ScreenWidth         = 1000
 	ScreenHeight        = 1200
+	AnimTime            = 0.5
 	EnemyWidth          = 75
 	EnemyHeight         = 75
 	EnemyGridY          = 5
@@ -32,26 +33,19 @@ type Game struct {
 	playerWon    bool
 	playerScore  int
 	bulletTimer  int32
-	// enemyShoot   bool
-	// enemySpeed   float32
-	enemyXLen   int
-	enemyXMin   int
-	gameTexture rl.Texture2D
-	texSegmentH int32
-	texSegmentV int32
-	dt          float32
-	updateTime  float32
-	runningTime float32
+	enemyXLen    int
+	enemyXMin    int
+	gameTexture  rl.Texture2D
+	texSegmentH  int32
+	texSegmentV  int32
+	dt           float32
+	runningTime  float32
 
 	enemySpeed  float32
 	playerSpeed float32
 	bulletSpeed float32
 
 	frame int32
-
-	// enemyTex rl.Texture2D
-	// enemyRec rl.Rectangle
-	// enemyPos rl.Vector2
 
 	Player      Player
 	Bullets     [NumBullets]Bullet
@@ -66,14 +60,12 @@ type Player struct {
 	Rec    rl.Rectangle
 	Pos    rl.Vector2
 	Colour rl.Color
-	// Speed  float32
 	Health int32
 }
 
 type Bullet struct {
 	Rec    rl.Rectangle
 	Active bool
-	// Speed  float32
 }
 
 type Enemy struct {
@@ -84,13 +76,11 @@ type Enemy struct {
 	Alive     bool
 	HitPoints int
 	Shooting  bool
-	// Speed     float32
 }
 
 type EnemyBullet struct {
 	Rec   rl.Rectangle
 	Shoot bool
-	// Speed float32
 }
 
 type Star struct {
@@ -110,28 +100,22 @@ type Defence struct {
 
 func main() {
 	game := Game{
-		// gameActive:  true,
-		// playerScore: 0,
-		// bulletTimer: 5,
-		// enemyShoot:  false,
-		// enemySpeed:  0.5,
-		// gameTexture: rl.LoadTexture("img/SpaceInvaders.png"),
-		// // texSegmentH: gameTexture.Width / 7,
-		// // texSegmentV: gameTexture.Height / 5,
-		// // Player:
 		playerSpeed: 1000,
 		enemySpeed:  20,
 		bulletSpeed: 2000,
-		updateTime:  0.5, // / 12.0,
 		runningTime: 0,
+		playerScore: 0,
+		gameActive:  true,
+		bulletTimer: 5,
 	}
+
 	rl.InitWindow(ScreenWidth, ScreenHeight, "Aliens Go Home!")
 
 	game.InitGame()
 
 	defer rl.CloseWindow()
 
-	rl.SetTargetFPS(120)
+	// rl.SetTargetFPS(120)
 
 	for !rl.WindowShouldClose() {
 		game.Update()
@@ -141,9 +125,9 @@ func main() {
 }
 
 func (g *Game) InitGame() {
-	g.gameActive = true
-	g.playerScore = 0
-	g.bulletTimer = 5
+	// g.gameActive = true
+	// g.playerScore = 0
+	// g.bulletTimer = 5
 
 	g.frame = 0
 
@@ -151,16 +135,6 @@ func (g *Game) InitGame() {
 	g.texSegmentH = g.gameTexture.Width / 7
 	g.texSegmentV = g.gameTexture.Height / 5
 
-	// g.enemyTex = rl.LoadTexture("img/SpaceInvaders.png")
-	// g.enemyRec.Width = float32(g.enemyTex.Width) / 14
-	// g.enemyRec.Height = float32(g.enemyTex.Height) / 10
-	// g.enemyRec.X = 0
-	// g.enemyRec.Y = 0
-
-	// Initialise player
-	// g.Player.Tex = rl.LoadTexture("img/SpaceInvaders.png")
-
-	// fmt.Println("Texture Width: ", g.Player.Tex.Width)
 	g.Player.RecIn.Width = float32(g.gameTexture.Width) / 7
 	g.Player.RecIn.Height = float32(g.gameTexture.Height) / 5
 	g.Player.RecIn.X = float32(g.texSegmentH) * 4
@@ -168,9 +142,9 @@ func (g *Game) InitGame() {
 	g.Player.Rec.Width = 80
 	g.Player.Rec.Height = 80
 	g.Player.Rec.X = float32(ScreenWidth/2 - int32(g.Player.Rec.Width/2))
-	g.Player.Rec.Y = float32(ScreenHeight - int32(g.Player.Rec.Height))
-	g.Player.Pos.X = 0 // g.Player.Rec.X
-	g.Player.Pos.Y = 0 // g.Player.Rec.Y
+	g.Player.Rec.Y = float32(ScreenHeight - int32(g.Player.Rec.Height) - 40)
+	g.Player.Pos.X = 0
+	g.Player.Pos.Y = 0
 
 	// g.playerSpeed = 10
 	g.Player.Health = 3
@@ -438,7 +412,6 @@ func (g *Game) Update() {
 	g.dt = rl.GetFrameTime()
 
 	g.runningTime += g.dt
-	fmt.Println(g.runningTime)
 
 	g.HandleInputs()
 	if g.gameActive {
@@ -477,7 +450,6 @@ func (g *Game) Update() {
 func (g *Game) Draw() {
 	rl.BeginDrawing()
 	rl.ClearBackground(rl.Black)
-	// rl.GetFrameTime()
 
 	// Draw a beautiful starrry canopy
 	for i := range g.Stars {
@@ -498,10 +470,6 @@ func (g *Game) Draw() {
 
 	if g.gameActive {
 		rl.DrawTexturePro(g.gameTexture, g.Player.RecIn, g.Player.Rec, g.Player.Pos, 0, g.Player.Colour)
-		// rl.DrawRectangleRec(g.Player.Rec, g.Player.Colour)
-		// rl.DrawTextureRec(g.Player.Tex, g.Player.Rec, g.Player.Pos, g.Player.Colour)
-
-		// rl.DrawTexturePro()
 
 		//Draw defences
 		for _, d := range g.Defence {
@@ -510,7 +478,6 @@ func (g *Game) Draw() {
 				d.RecIn.Height = float32(g.texSegmentV)
 				d.RecIn.X = 3 * float32(g.texSegmentH)
 				if d.Health > 15 {
-					// rl.DrawRectangleRec(d.Rec, rl.Gray)
 					d.RecIn.Y = float32(g.texSegmentV)
 				} else if d.Health > 8 {
 					d.RecIn.Y = 2 * float32(g.texSegmentV)
@@ -529,7 +496,7 @@ func (g *Game) Draw() {
 		}
 
 		// Draw enemies
-		if g.runningTime >= g.updateTime {
+		if g.runningTime >= AnimTime {
 			g.frame++
 			if g.frame > 1 {
 				g.frame = 0
@@ -579,6 +546,11 @@ func (g *Game) Draw() {
 		text := "YOU'RE WINNER ! OMG! \n\n\tSo proud of u."
 		rl.DrawText(text, ScreenWidth/2-100, 200, 20, rl.Green)
 		if rl.IsKeyPressed(rl.KeyEnter) {
+			g.enemySpeed = 20
+			g.runningTime = 0
+			g.playerScore = 0
+			g.gameActive = true
+			g.bulletTimer = 5
 			g.InitGame()
 		}
 	} else {
@@ -587,6 +559,11 @@ func (g *Game) Draw() {
 		rl.DrawText(fmt.Sprint("Scorus finalis: ", g.playerScore), ScreenWidth/2-450, 400, 40, rl.White)
 		// rl.DrawText(fmt.Sprint("Dat means u killed "))
 		if rl.IsKeyPressed(rl.KeyEnter) {
+			g.enemySpeed = 20
+			g.runningTime = 0
+			g.playerScore = 0
+			g.gameActive = true
+			g.bulletTimer = 5
 			g.InitGame()
 		}
 	}
