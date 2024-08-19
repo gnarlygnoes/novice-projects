@@ -1,9 +1,9 @@
 .PHONY: all build clean
 
-INC ?= $(wildcard src/*.h)
-SRC ?= $(wildcard src/*.c)
+INC ?= $(wildcard *.h)
+SRC ?= $(wildcard *.c)
 OBJ ?= $(SRC:.c=.o)
-RUN ?= aliens 
+RUN ?= aliens
 
 
 all:    build

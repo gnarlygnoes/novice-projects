@@ -17,8 +17,8 @@ const (
 	EnemyGridY          = 5
 	EnemyGridX          = 10
 	NumDefences         = 4
-	DefenceHeight       = 60
-	DefenceWidth        = 120
+	DefenceHeight       = 70
+	DefenceWidth        = 140
 	DefencePositionY    = ScreenHeight - 200 - DefenceHeight
 	BulletDisplacement  = -9000
 	EnemyDisplacement   = -6000
@@ -35,7 +35,6 @@ type Game struct {
 	bulletTimer  int32
 	enemyXLen    int
 	enemyXMin    int
-	gameTexture  rl.Texture2D
 	texSegmentH  int32
 	texSegmentV  int32
 	dt           float32
@@ -44,6 +43,10 @@ type Game struct {
 	enemySpeed  float32
 	playerSpeed float32
 	bulletSpeed float32
+
+	gameTexture     rl.Texture2D
+	clouds          rl.Texture2D
+	buildingTexture rl.Texture2D
 
 	frame int32
 
@@ -125,9 +128,14 @@ func main() {
 }
 
 func (g *Game) InitGame() {
-	// g.gameActive = true
-	// g.playerScore = 0
-	// g.bulletTimer = 5
+	// Initialise stars
+	for i := range g.Stars {
+		g.Stars[i] = GenerateStars()
+	}
+
+	// Initialise clouds and buildings
+	// g.clouds = GenerateTexture(ScreenWidth, ScreenHeight, 5.5)
+	// g.buildingTexture = rl.LoadTexture("img/SpaceInvaders_BackgroundBuildings.png")
 
 	g.frame = 0
 
@@ -149,11 +157,6 @@ func (g *Game) InitGame() {
 	// g.playerSpeed = 10
 	g.Player.Health = 3
 	g.Player.Colour = rl.Red
-
-	// Initialise stars
-	for i := range g.Stars {
-		g.Stars[i] = GenerateStars()
-	}
 
 	// Initialise player bullets
 	for i := range g.Bullets {
@@ -195,9 +198,9 @@ func (g *Game) InitGame() {
 	for i := range g.Defence {
 		g.Defence[i].Rec.Width = DefenceWidth
 		g.Defence[i].Rec.Height = DefenceHeight
-		g.Defence[i].Rec.X = float32(ScreenWidth/4) * float32(i)
+		g.Defence[i].Rec.X = 10 + ScreenWidth/(NumDefences*6) + float32(ScreenWidth/4)*float32(i)
 		g.Defence[i].Rec.Y = DefencePositionY
-		g.Defence[i].Health = 20
+		g.Defence[i].Health = 25
 		g.Defence[i].Active = true
 	}
 }
@@ -460,6 +463,10 @@ func (g *Game) Draw() {
 			g.Stars[i].Colour)
 	}
 
+	// Draw pretty clouds
+	rl.DrawTexture(g.clouds, 0, 0, rl.Gray)
+	// rl.DrawTexturePro(g.buildingTexture)
+
 	/* Start Screen:
 	You is like a Spartan or something and you is being attacked and must use the defences
 	to protecc yourself rofl.
@@ -592,4 +599,12 @@ func GenerateStars() Star {
 	star.Colour = c
 
 	return star
+}
+
+func GenerateTexture(width, height int, scale float32) rl.Texture2D {
+	bImage := rl.GenImagePerlinNoise(ScreenWidth, ScreenHeight, 0, 0, scale)
+	bTexture := rl.LoadTextureFromImage(bImage)
+	rl.UnloadImage(bImage)
+
+	return bTexture
 }
