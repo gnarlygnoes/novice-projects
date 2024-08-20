@@ -38,8 +38,8 @@ type Game struct {
 	Defence     [NumDefences]Defence
 }
 
-func NewGame() *Game {
-	gameTexture := rl.LoadTexture("img/SpaceInvaders.png")
+func NewGame(gameTexture rl.Texture2D) *Game {
+	gameTexture = rl.LoadTexture("img/SpaceInvaders.png")
 	texSegmentH := gameTexture.Width / 7
 	texSegmentV := gameTexture.Height / 5
 
@@ -262,7 +262,7 @@ func (g *Game) Draw() {
 			g.playerScore = 0
 			g.gameActive = true
 			g.bulletTimer = 5
-			NewGame()
+			NewGame(g.gameTexture)
 		}
 	} else {
 		text := "You are lose. Hit enter to start again rofl."
@@ -275,7 +275,7 @@ func (g *Game) Draw() {
 			g.playerScore = 0
 			g.gameActive = true
 			g.bulletTimer = 5
-			NewGame()
+			NewGame(g.gameTexture)
 		}
 	}
 

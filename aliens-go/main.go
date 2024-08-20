@@ -28,7 +28,8 @@ func main() {
 
 	// g := Game{}
 	// game := g.
-	g := NewGame()
+	t := GameTexture()
+	g := NewGame(t)
 
 	defer rl.CloseWindow()
 
@@ -39,4 +40,8 @@ func main() {
 
 		g.Draw()
 	}
+}
+
+func GameTexture() rl.Texture2D {
+	return rl.LoadTexture("img/SpaceInvaders.png")
 }

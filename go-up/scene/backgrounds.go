@@ -1,11 +1,21 @@
-package main
+package scene
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type Star struct {
 	x, y   int32
 	w, h   float32
 	Colour rl.Color
+}
+
+func GenerateTexture(w, h int, scale float32) rl.Texture2D {
+	bImage := rl.GenImagePerlinNoise(w, h, 0, 0, scale)
+	bTexture := rl.LoadTextureFromImage(bImage)
+	rl.UnloadImage((bImage))
+
+	return bTexture
 }
 
 func GenerateStars() Star {
@@ -28,11 +38,3 @@ func GenerateStars() Star {
 
 	return star
 }
-
-// func GenerateTexture(width, height int, scale float32) rl.Texture2D {
-// 	bImage := rl.GenImagePerlinNoise(ScreenWidth, ScreenHeight, 0, 0, scale)
-// 	bTexture := rl.LoadTextureFromImage(bImage)
-// 	rl.UnloadImage(bImage)
-
-// 	return bTexture
-// }

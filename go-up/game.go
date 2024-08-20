@@ -9,6 +9,8 @@ type Game struct {
 }
 
 func NewGame() *Game {
+	// backgroundTexture :=
+
 	g := &Game{
 		player: *NewPlayer(),
 	}
@@ -16,7 +18,9 @@ func NewGame() *Game {
 }
 
 func (g *Game) Update() {
-	PlayerInputs(g)
+	dt := rl.GetFrameTime()
+
+	g.player.Update(dt)
 }
 
 func (g *Game) Draw() {
