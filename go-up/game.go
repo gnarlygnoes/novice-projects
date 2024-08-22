@@ -5,22 +5,29 @@ import (
 )
 
 type Game struct {
-	player Player
+	player   Player
+	platform Platform
 }
 
 func NewGame() *Game {
 	// backgroundTexture :=
 
 	g := &Game{
-		player: *NewPlayer(),
+		player:   *NewPlayer(),
+		platform: *MakePlatform(0, ScreenHeight-50, 1000, 50, rl.Green),
 	}
 	return g
 }
 
+// func (g *Game) SetGameMode() {}
+
 func (g *Game) Update() {
 	dt := rl.GetFrameTime()
 
-	g.player.Update(dt)
+	g.player.Update(g, dt)
+	// g.MoveAndCollideX(dt)
+
+	// g.HandleCollisions(dt)
 }
 
 func (g *Game) Draw() {
@@ -29,6 +36,7 @@ func (g *Game) Draw() {
 	rl.ClearBackground(rl.Blue)
 
 	rl.DrawRectangleRec(g.player.rec, g.player.colour)
+	rl.DrawRectangleRec(g.platform.rec, g.platform.colour)
 
 	rl.EndDrawing()
 }

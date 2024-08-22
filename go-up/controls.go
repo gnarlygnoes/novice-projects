@@ -5,13 +5,20 @@ import (
 )
 
 func PlayerInputs(p *Player, dt float32) {
-	if rl.IsKeyDown(rl.KeyLeft) && p.rec.X > 0 {
-		p.rec.X -= p.speed * dt
+	p.moving = false
+	p.direction = 0
+	if rl.IsKeyDown(rl.KeyRight) {
+		p.moving = true
+		p.direction = 1
+		// p.rec.X += p.speed * dt
 	}
-	if rl.IsKeyDown(rl.KeyRight) && p.rec.X < ScreenWidth-p.rec.Width {
-		p.rec.X += p.speed * dt
+	if rl.IsKeyDown(rl.KeyLeft) {
+		p.moving = true
+		p.direction = -1
+		// p.rec.X -= p.direction * p.speed * dt
 	}
 	if rl.IsKeyPressed(rl.KeySpace) && p.vVel == 0 {
-		p.vVel = -p.jumpSpeed
+		p.jumping = true
+		// p.vVel = -p.jumpSpeed
 	}
 }

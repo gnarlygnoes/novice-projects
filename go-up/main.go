@@ -7,12 +7,10 @@ import (
 const (
 	ScreenWidth  = 1920
 	ScreenHeight = 1080
-	Gravity      = 10000
-	// Velocity     = 1000
+	Gravity      = 9800
 )
 
 func main() {
-	// g := Game{}
 	g := NewGame()
 
 	rl.InitWindow(ScreenWidth, ScreenHeight, "GO UP!! NOT DOWN! UP! UP!!!")
