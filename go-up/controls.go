@@ -18,7 +18,7 @@ func PlayerInputs(p *Player, dt float32) {
 		// p.rec.X -= p.direction * p.speed * dt
 	}
 	if rl.IsKeyPressed(rl.KeySpace) && p.vVel == 0 {
-		p.jumping = true
+		p.jump = true
 		// p.vVel = -p.jumpSpeed
 	}
 }

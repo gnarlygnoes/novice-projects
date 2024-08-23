@@ -219,7 +219,6 @@ func InitGame() *Game {
 
 func (g *Game) HandleInputs() {
 	if rl.IsKeyDown(rl.KeyRight) && g.Player.Rec.X < float32(ScreenWidth)-g.Player.Rec.Width && !g.gamePaused {
-		g.movingRight = true
 		g.Player.Rec.X += g.playerSpeed * g.dt
 	}
 	if rl.IsKeyDown(rl.KeyLeft) && g.Player.Rec.X > 0.0 && !g.gamePaused {
