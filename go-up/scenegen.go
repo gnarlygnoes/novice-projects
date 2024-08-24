@@ -51,7 +51,14 @@ func (g *Game) GenerateTileMap() ([]GroundTile, []PlatformTile) {
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	}
-
+	// var x [10][10]int32
+	// for i := range x {
+	// 	for range x[i] {
+	// 		x[i][9] = 1
+	// 		x[4][4] = 2
+	// 		x[5][4] = 2
+	// 	}
+	// }
 	// groundTile := Tile{
 	// 	groundCollision: true,
 

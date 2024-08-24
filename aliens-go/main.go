@@ -115,7 +115,9 @@ func main() {
 
 	rl.InitWindow(ScreenWidth, ScreenHeight, "Aliens Go Home!")
 
-	game := InitGame()
+	game := Game{}
+
+	game.InitGame()
 
 	defer rl.CloseWindow()
 
@@ -128,8 +130,8 @@ func main() {
 	}
 }
 
-func InitGame() *Game {
-	g := &Game{}
+func (g *Game) InitGame() {
+	// g := &Game{}
 	g.gamePaused = false
 	g.playerSpeed = 1000
 	g.enemySpeed = 20
@@ -214,7 +216,7 @@ func InitGame() *Game {
 		g.Defence[i].Health = 25
 		g.Defence[i].Active = true
 	}
-	return g
+	// return g
 }
 
 func (g *Game) HandleInputs() {
@@ -582,7 +584,7 @@ func (g *Game) Draw() {
 			g.playerScore = 0
 			g.gameActive = true
 			g.bulletTimer = 5
-			InitGame()
+			g.InitGame()
 		}
 	} else {
 		text := "You are lose. Hit enter to start again rofl."
@@ -590,12 +592,12 @@ func (g *Game) Draw() {
 		rl.DrawText(fmt.Sprint("Scorus finalis: ", g.playerScore), ScreenWidth/2-450, 400, 40, rl.White)
 		// rl.DrawText(fmt.Sprint("Dat means u killed "))
 		if rl.IsKeyPressed(rl.KeyEnter) {
-			g.enemySpeed = 20
-			g.runningTime = 0
-			g.playerScore = 0
-			g.gameActive = true
-			g.bulletTimer = 5
-			InitGame()
+			// g.enemySpeed = 20
+			// g.runningTime = 0
+			// g.playerScore = 0
+			// g.gameActive = true
+			// g.bulletTimer = 5
+			g.InitGame()
 		}
 	}
 
