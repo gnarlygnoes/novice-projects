@@ -14,12 +14,15 @@ type Game struct {
 	player        Player
 	groundTiles   []Tile
 	platformTiles []Tile
+	Camera        *Camera
 }
 
 func NewGame() *Game {
 	g := &Game{
 		player: *NewPlayer(),
+		Camera: NewCamera(ScreenWidth, ScreenHeight),
 	}
+
 	return g
 }
 
@@ -29,6 +32,7 @@ func (g *Game) Update() {
 	dt := rl.GetFrameTime()
 
 	g.player.Update(g, dt)
+	g.Camera.Update(&g.player)
 }
 
 func (g *Game) Draw() {
@@ -36,6 +40,7 @@ func (g *Game) Draw() {
 	rl.BeginDrawing()
 
 	rl.ClearBackground(rl.Blue)
+	rl.BeginMode2D(g.Camera.Camera2D)
 
 	g.groundTiles, g.platformTiles = GenerateTileMap(g)
 

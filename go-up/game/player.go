@@ -1,8 +1,6 @@
 package game
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -17,6 +15,7 @@ type Player struct {
 	moving    bool
 	jump      bool
 	resetPos  bool
+	crouched  bool
 }
 
 func NewPlayer() *Player {
@@ -34,12 +33,9 @@ func NewPlayer() *Player {
 }
 
 func (p *Player) Update(g *Game, dt float32) {
-	fmt.Println(p.onSurface)
-
-	if p.rec.Y >= ScreenHeight-ScreenHeight/10-p.rec.Height {
-		p.rec.Y = ScreenHeight - ScreenHeight/10 - p.rec.Height
+	if CheckCollisionY(p, g.groundTiles) {
 		p.onSurface = true
-	} else if PlatformCollisionY(g) {
+	} else if CheckCollisionY(p, g.platformTiles) {
 		p.onSurface = true
 	} else {
 		p.onSurface = false
@@ -57,6 +53,12 @@ func (p *Player) Update(g *Game, dt float32) {
 	if p.jump {
 		p.vVel = -p.jumpSpeed
 		p.jump = false
+	}
+
+	if p.crouched {
+		p.rec.Height = 50
+	} else {
+		p.rec.Height = 100
 	}
 
 	if p.resetPos {
