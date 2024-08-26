@@ -11,10 +11,12 @@ const (
 )
 
 type Game struct {
-	player        Player
+	Camera *Camera
+	player Player
+	// enemy []Enemy
+
 	groundTiles   []Tile
 	platformTiles []Tile
-	Camera        *Camera
 }
 
 func NewGame() *Game {
@@ -45,14 +47,18 @@ func (g *Game) Draw() {
 	g.groundTiles, g.platformTiles = GenerateTileMap(g)
 
 	for i := range g.groundTiles {
-		rl.DrawRectangleRec(g.groundTiles[i].rec, g.groundTiles[i].colour)
+		rl.DrawRectangleRec(g.groundTiles[i].Rec, g.groundTiles[i].Colour)
 	}
 
 	for i := range g.platformTiles {
-		rl.DrawRectangleRec(g.platformTiles[i].rec, g.platformTiles[i].colour)
+		rl.DrawRectangleRec(g.platformTiles[i].Rec, g.platformTiles[i].Colour)
 	}
 
-	rl.DrawRectangleRec(g.player.rec, g.player.colour)
+	for _, b := range g.player.Bullets {
+		rl.DrawRectangleRec(b.Rec, b.Colour)
+	}
+
+	rl.DrawRectangleRec(g.player.Rec, g.player.Colour)
 
 	rl.EndDrawing()
 }

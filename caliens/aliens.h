@@ -1,5 +1,6 @@
 #include "raylib.h"
 #define NUM_STARS 900
+#define NUM_BULLETS 50
 
 static const int screen_width = 1920;
 static const int screen_height = 1080;
@@ -23,6 +24,12 @@ typedef struct Player
     Color colour;
 } Player;
 
+typedef struct Bullet {
+    Rectangle rec;
+    Color colour;
+    bool active;
+} Bullet;
+
 // Initialise player
 static Player player = {
     // .in_rec.height = 
@@ -35,10 +42,12 @@ static Player player = {
     .pos.y = 0,
 };
 
+static Bullet bullet[NUM_BULLETS];
+
 void InitGame(void);
 Star new_star_field();
 void DrawGame(void);
-// void UpdateGame(void);
+void UpdateGame(void);
 void handle_inputs(void);
 
 struct Star stars[NUM_STARS];

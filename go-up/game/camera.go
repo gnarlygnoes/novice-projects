@@ -19,5 +19,5 @@ func NewCamera(w, h int) *Camera {
 }
 
 func (c *Camera) Update(player *Player) {
-	c.Target.X = player.rec.X + (player.rec.Width / 2) - (ScreenWidth / 2)
+	c.Target.X = player.Rec.X + (player.Rec.Width / 2) - (ScreenWidth / 2)
 }

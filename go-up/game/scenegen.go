@@ -5,8 +5,8 @@ import (
 )
 
 type Tile struct {
-	rec    rl.Rectangle
-	colour rl.Color
+	Rec    rl.Rectangle
+	Colour rl.Color
 }
 
 func GenerateTileMap(g *Game) ([]Tile, []Tile) {
@@ -54,24 +54,24 @@ func GenerateTileMap(g *Game) ([]Tile, []Tile) {
 			switch tile {
 			case 1:
 				tile := Tile{
-					rec: rl.Rectangle{
+					Rec: rl.Rectangle{
 						X:      float32(tileWidth * i),
 						Y:      float32(tileHeight * j),
 						Width:  float32(tileWidth),
 						Height: float32(tileHeight),
 					},
-					colour: rl.Green,
+					Colour: rl.Green,
 				}
 				groundTiles = append(groundTiles, tile)
 			case 2:
 				tile := Tile{
-					rec: rl.Rectangle{
+					Rec: rl.Rectangle{
 						X:      float32(tileWidth * i),
 						Y:      float32(tileHeight * j),
 						Width:  float32(tileWidth),
 						Height: float32(tileHeight),
 					},
-					colour: rl.Brown,
+					Colour: rl.Brown,
 				}
 
 				platformTiles = append(platformTiles, tile)

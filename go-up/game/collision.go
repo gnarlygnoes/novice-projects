@@ -5,17 +5,17 @@ import (
 )
 
 func CheckCollisionY(p *Player, t []Tile) (onPlatform bool) {
-	playerHeight := p.rec.Height
-	playerBottom := p.rec.Y + playerHeight
-	playerTop := p.rec.Y
+	playerHeight := p.Rec.Height
+	playerBottom := p.Rec.Y + playerHeight
+	playerTop := p.Rec.Y
 
 	for _, plat := range t {
-		if rl.CheckCollisionRecs(p.rec, plat.rec) {
-			if playerBottom >= plat.rec.Y && !(playerBottom > plat.rec.Y+30) {
-				p.rec.Y = plat.rec.Y - playerHeight + 1
+		if rl.CheckCollisionRecs(p.Rec, plat.Rec) {
+			if playerBottom >= plat.Rec.Y && !(playerBottom > plat.Rec.Y+30) {
+				p.Rec.Y = plat.Rec.Y - playerHeight + 1
 				onPlatform = true
-			} else if playerTop <= plat.rec.Y+plat.rec.Height {
-				p.rec.Y = plat.rec.Y + plat.rec.Height
+			} else if playerTop <= plat.Rec.Y+plat.Rec.Height {
+				p.Rec.Y = plat.Rec.Y + plat.Rec.Height
 				onPlatform = false
 			} else {
 				onPlatform = false
@@ -27,21 +27,36 @@ func CheckCollisionY(p *Player, t []Tile) (onPlatform bool) {
 }
 
 func (g *Game) MoveAndCollideX(dt float32) {
-	g.player.rec.X += g.player.speed * g.player.direction * dt
+	g.player.Rec.X += g.player.Speed * g.player.Direction * dt
 
-	playerWidth := g.player.rec.Width
-	playerLeft := g.player.rec.X
+	playerWidth := g.player.Rec.Width
+	playerLeft := g.player.Rec.X
 	playerRight := playerLeft + playerWidth
-	playerBottom := g.player.rec.Y + g.player.rec.Height
+	playerBottom := g.player.Rec.Y + g.player.Rec.Height
 
 	for _, plat := range g.platformTiles {
-		if rl.CheckCollisionRecs(g.player.rec, plat.rec) {
+		if rl.CheckCollisionRecs(g.player.Rec, plat.Rec) {
+			if (playerLeft < plat.Rec.X+plat.Rec.Width) &&
+				(playerBottom > plat.Rec.Y+10) && (playerRight > plat.Rec.X+plat.Rec.Width-10) {
+				g.player.Rec.X = plat.Rec.X + plat.Rec.Width
+			} else if (playerRight > plat.Rec.X) && (playerBottom > plat.Rec.Y+10) {
+				g.player.Rec.X = plat.Rec.X - g.player.Rec.Width
+			}
+		}
+	}
+	g.BulletCollision()
+}
 
-			if (playerLeft < plat.rec.X+plat.rec.Width) &&
-				(playerBottom > plat.rec.Y+10) && (playerRight > plat.rec.X+plat.rec.Width-10) {
-				g.player.rec.X = plat.rec.X + plat.rec.Width
-			} else if (playerRight > plat.rec.X) && (playerBottom > plat.rec.Y+10) {
-				g.player.rec.X = plat.rec.X - g.player.rec.Width
+func (g *Game) BulletCollision() {
+	for i := range g.player.Bullets {
+		for j := range g.platformTiles {
+			if rl.CheckCollisionRecs(g.player.Bullets[i].Rec, g.platformTiles[j].Rec) {
+				g.player.Bullets[i].Active = false
+			}
+		}
+		for j := range g.groundTiles {
+			if rl.CheckCollisionRecs(g.player.Bullets[i].Rec, g.groundTiles[j].Rec) {
+				g.player.Bullets[i].Active = false
 			}
 		}
 	}

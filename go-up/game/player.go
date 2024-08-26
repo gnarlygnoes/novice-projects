@@ -5,67 +5,75 @@ import (
 )
 
 type Player struct {
-	rec       rl.Rectangle
-	colour    rl.Color
-	speed     float32
-	jumpSpeed float32
-	vVel      float32
-	onSurface bool
-	direction float32
-	moving    bool
-	jump      bool
-	resetPos  bool
-	crouched  bool
+	Rec       rl.Rectangle
+	Colour    rl.Color
+	Speed     float32
+	JumpSpeed float32
+	VertVel   float32
+	OnSurface bool
+	Direction float32
+	Moving    bool
+	Jump      bool
+	ResetPos  bool
+	Crouched  bool
+	// Bullets   [50]Bullet
+	Bullets  [50]Bullet
+	Shooting bool
+	Facing   float32
 }
 
 func NewPlayer() *Player {
 	return &Player{
-		rec: rl.Rectangle{
+		Rec: rl.Rectangle{
 			Width:  50,
 			Height: 100,
 			X:      ScreenWidth / 2,
 			Y:      0},
-		colour:    rl.Color{R: 150, G: 70, B: 50, A: 255},
-		speed:     1000,
-		jumpSpeed: 1500,
-		vVel:      0,
+		Colour:    rl.Color{R: 150, G: 70, B: 50, A: 255},
+		Speed:     700,
+		JumpSpeed: 1500,
+		VertVel:   0,
+		Shooting:  false,
+		Bullets:   RangedProjectilesInit(),
 	}
 }
 
 func (p *Player) Update(g *Game, dt float32) {
 	if CheckCollisionY(p, g.groundTiles) {
-		p.onSurface = true
+		p.OnSurface = true
 	} else if CheckCollisionY(p, g.platformTiles) {
-		p.onSurface = true
+		p.OnSurface = true
 	} else {
-		p.onSurface = false
+		p.OnSurface = false
 	}
 
-	if p.onSurface {
-		g.player.vVel = 0
+	if p.OnSurface {
+		g.player.VertVel = 0
 	} else {
-		p.vVel += Gravity * dt
+		p.VertVel += Gravity * dt
 	}
 
 	PlayerInputs(p, dt)
 	g.MoveAndCollideX(dt)
 
-	if p.jump {
-		p.vVel = -p.jumpSpeed
-		p.jump = false
+	if p.Jump {
+		p.VertVel = -p.JumpSpeed
+		p.Jump = false
 	}
 
-	if p.crouched {
-		p.rec.Height = 50
+	if p.Crouched {
+		p.Rec.Height = 50
 	} else {
-		p.rec.Height = 100
+		p.Rec.Height = 100
 	}
 
-	if p.resetPos {
-		p.rec.X = ScreenWidth / 2
-		p.rec.Y = 0
-		p.resetPos = false
+	if p.ResetPos {
+		p.Rec.X = ScreenWidth / 2
+		p.Rec.Y = 0
+		p.ResetPos = false
 	}
 
-	p.rec.Y += p.vVel * dt
+	p.BulletsUpdate(g, dt)
+
+	p.Rec.Y += p.VertVel * dt
 }

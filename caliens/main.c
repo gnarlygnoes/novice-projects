@@ -16,6 +16,13 @@ void InitGame(void)
     player.in_rec.height = game_texture.height / 5;
     player.in_rec.x = player.in_rec.width * 4;
     player.in_rec.y = 0;
+
+    for (int i = 0; i < NUM_BULLETS; i++) {
+        bullet[i].active = false;
+        bullet[i].rec.height = 20;
+        bullet[i].rec.width = 5;
+        bullet->colour = ORANGE;
+    }
 }
 
 
@@ -26,7 +33,7 @@ int main(void)
 
     InitGame();
 
-    SetTargetFPS(60);
+    SetTargetFPS(120);
     
     double dt;
     while (!WindowShouldClose())
@@ -35,8 +42,9 @@ int main(void)
 
         BeginDrawing();
 
+        UpdateGame();
         DrawGame();
-        handle_inputs();
+        
         
         EndDrawing();
     }
@@ -44,6 +52,12 @@ int main(void)
     CloseWindow();
 
     return 0;
+}
+
+void UpdateGame(void)
+{
+    handle_inputs();
+
 }
 
 void DrawGame(void) 
@@ -72,7 +86,18 @@ void handle_inputs(void)
     if (IsKeyDown(KEY_RIGHT) && player.rec.x < screen_width - player_width) {
         player.rec.x += 10;
     }
+    if (IsKeyPressed(KEY_SPACE)) {
+        shoot();
+    }
 }
+
+// void shoot(void) {
+//     for (int i = 0; i < NUM_BULLETS; i++) {
+//         if (!bullet[i].active) {
+//             bullet[i].active = true;
+//         }
+//     }
+// }
 
 Star new_star_field() 
 {
