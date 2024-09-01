@@ -2,12 +2,6 @@ package game
 
 import rl "github.com/gen2brain/raylib-go/raylib"
 
-// type Weapon struct {
-// 	attacking          bool
-// 	lastAttack         float32
-// 	timeBetweenAttacks float32
-// }
-
 type Bullet struct {
 	Active bool
 	Rec    rl.Rectangle
@@ -15,7 +9,7 @@ type Bullet struct {
 	Speed  float32
 }
 
-func RangedProjectilesInit() (projectiles [50]Bullet) {
+func PlayerProjectilesInit() (projectiles [50]Bullet) {
 	for i := range projectiles {
 		projectiles[i] = Bullet{
 			Active: false,
@@ -65,3 +59,24 @@ func (p *Player) BulletsUpdate(g *Game, dt float32) {
 		}
 	}
 }
+
+type MeleeWeapon struct {
+}
+
+// func EnemyProjectilesInit() (projectiles [50]Bullet) {
+// 	for i := range projectiles {
+// 		projectiles[i] = Bullet{
+// 			Active: false,
+// 			Rec: rl.Rectangle{
+// 				X:      0,
+// 				Y:      0,
+// 				Width:  0,
+// 				Height: 0,
+// 			},
+// 			Colour: rl.Orange,
+// 			Speed:  0,
+// 		}
+// 	}
+
+// 	return projectiles
+// }

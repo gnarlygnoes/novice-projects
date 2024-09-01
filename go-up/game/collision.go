@@ -44,6 +44,7 @@ func (g *Game) MoveAndCollideX(dt float32) {
 			}
 		}
 	}
+
 	g.BulletCollision()
 }
 
@@ -60,4 +61,8 @@ func (g *Game) BulletCollision() {
 			}
 		}
 	}
+}
+
+func (g *Game) NPCCollision() {
+
 }

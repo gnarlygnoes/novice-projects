@@ -34,7 +34,7 @@ func NewPlayer() *Player {
 		JumpSpeed: 1500,
 		VertVel:   0,
 		Shooting:  false,
-		Bullets:   RangedProjectilesInit(),
+		Bullets:   PlayerProjectilesInit(),
 	}
 }
 

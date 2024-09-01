@@ -5,77 +5,28 @@
 
 void InitGame(void) 
 {
-    Texture2D game_texture = LoadTexture("img/SpaceInvaders.png");
+    
 
     for (size_t i = 0; i < sizeof(stars) / sizeof(*stars); i++) {
         stars[i] = new_star_field();
     }
 
-    // Initialise player
-    player.in_rec.width = game_texture.width / 7;
-    player.in_rec.height = game_texture.height / 5;
-    player.in_rec.x = player.in_rec.width * 4;
-    player.in_rec.y = 0;
-
     for (int i = 0; i < NUM_BULLETS; i++) {
         bullet[i].active = false;
-        bullet[i].rec.height = 20;
-        bullet[i].rec.width = 5;
+        bullet[i].rec.height = 0;
+        bullet[i].rec.width = 0;
+        bullet[i].rec.x = 0;
+        bullet[i].rec.y = 0;
         bullet->colour = ORANGE;
     }
-}
 
-
-
-int main(void)
-{
-    InitWindow(screen_width, screen_height, "raylib [core] example - basic window");
-
-    InitGame();
-
-    SetTargetFPS(120);
-    
-    double dt;
-    while (!WindowShouldClose())
-    {
-        dt = GetFrameTime();
-
-        BeginDrawing();
-
-        UpdateGame();
-        DrawGame();
-        
-        
-        EndDrawing();
+    for (int i = 0; i < NUM_ENEMIES; i++) {
+        enemies[i].rec.width = enemy_size;
+        enemies[i].rec.height = enemy_size;
+        enemies[i].rec.x = 10 + (1.3 * enemy_size * (i%10));
+        enemies[i].rec.y = (1.3 * enemy_size * i/10);
+        enemies[i].colour = GREEN;
     }
-
-    CloseWindow();
-
-    return 0;
-}
-
-void UpdateGame(void)
-{
-    handle_inputs();
-
-}
-
-void DrawGame(void) 
-{
-
-        ClearBackground(BLACK);
-        DrawFPS(12, 36);
-
-        for(size_t i = 0; i < sizeof(stars) / sizeof(*stars); i++) {
-            DrawRectangle(stars[i].x, 
-            stars[i].y, 
-            stars[i].w, 
-            stars[i].h,
-            stars[i].colour);   
-        }
-
-        DrawRectangleRec(player.rec, player.colour);
-        // DrawTexturePro();
 }
 
 void handle_inputs(void) 
@@ -91,13 +42,21 @@ void handle_inputs(void)
     }
 }
 
-// void shoot(void) {
-//     for (int i = 0; i < NUM_BULLETS; i++) {
-//         if (!bullet[i].active) {
-//             bullet[i].active = true;
-//         }
-//     }
-// }
+void shoot(void) 
+{
+    for (int i = 0; i < NUM_BULLETS; i++) {
+        if (!bullet[i].active) {
+            bullet[i].active = true;
+            bullet[i].rec.height = 20;
+            bullet[i].rec.width = 5;
+            bullet[i].rec.x = player.rec.x + player_width / 2;
+            bullet[i].rec.y = player.rec.y;
+            bullet[i].speed = 10;
+            printf("New bullet creatored.\n");
+            break;
+        }
+    }
+}
 
 Star new_star_field() 
 {
@@ -118,4 +77,79 @@ Star new_star_field()
     };
 
     return star;
+}
+
+int main(void)
+{
+    InitWindow(screen_width, screen_height, "raylib [core] example - basic window");
+
+    InitGame();
+
+    SetTargetFPS(120);
+    
+    Texture2D game_texture = LoadTexture("img/SpaceInvaders.png");
+
+    double dt;
+    while (!WindowShouldClose())
+    {
+        dt = GetFrameTime();
+
+        BeginDrawing();
+
+        UpdateGame();
+        DrawGame(game_texture);
+        
+        
+        EndDrawing();
+    }
+
+    CloseWindow();
+
+    return 0;
+}
+
+void UpdateGame(void)
+{
+    handle_inputs();
+    for (int i = 0; i < NUM_BULLETS; i++) {
+        if (bullet[i].active) {
+            bullet[i].rec.y -= bullet[i].speed;
+        }
+        if (bullet[i].rec.y + bullet[i].rec.height < 0) {
+            bullet[i].active = false;
+        }
+    }
+}
+
+void DrawGame(Texture2D tex) 
+{
+    player.in_rec.width = tex.width / 7;
+    player.in_rec.height = tex.height / 5;
+    player.in_rec.x = player.in_rec.width * 4;
+    player.in_rec.y = 0;
+
+    Vector2 origin = {0,0};
+
+        ClearBackground(BLACK);
+        DrawFPS(12, 36);
+
+        for(size_t i = 0; i < sizeof(stars) / sizeof(*stars); i++) {
+            DrawRectangle(stars[i].x, 
+            stars[i].y, 
+            stars[i].w, 
+            stars[i].h,
+            stars[i].colour);   
+        }
+
+        DrawTexturePro(tex, player.in_rec, player.rec, origin, 0, ORANGE);
+        
+        for (int i = 0; i < NUM_BULLETS; i++) {
+            if (bullet[i].active) {
+                DrawRectangleRec(bullet[i].rec, bullet[i].colour);
+            }
+        }
+
+        for (int i = 0; i < NUM_ENEMIES; i++) {
+            DrawRectangleRec(enemies[i].rec, enemies[i].colour);
+        }
 }
