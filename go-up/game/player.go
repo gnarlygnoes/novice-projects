@@ -5,43 +5,44 @@ import (
 )
 
 type Player struct {
-	Rec       rl.Rectangle
-	Colour    rl.Color
-	Speed     float32
-	JumpSpeed float32
-	VertVel   float32
-	OnSurface bool
-	Direction float32
-	Moving    bool
-	Jump      bool
-	ResetPos  bool
-	Crouched  bool
-	// Bullets   [50]Bullet
-	Bullets  [50]Bullet
-	Shooting bool
-	Facing   float32
+	Rec           rl.Rectangle
+	Colour        rl.Color
+	Speed         float32
+	JumpSpeed     float32
+	VertVel       float32
+	OnSurface     bool
+	Direction     float32
+	Moving        bool
+	Jump          bool
+	ResetPos      bool
+	Crouched      bool
+	Bullets       [50]Bullet
+	Shooting      bool
+	Facing        float32
+	maxHealth     int
+	currentHealth int
 }
 
-func NewPlayer() *Player {
+func NewPlayer(h int) *Player {
 	return &Player{
 		Rec: rl.Rectangle{
 			Width:  50,
 			Height: 100,
 			X:      ScreenWidth / 2,
 			Y:      0},
-		Colour:    rl.Color{R: 150, G: 70, B: 50, A: 255},
-		Speed:     700,
-		JumpSpeed: 1500,
-		VertVel:   0,
-		Shooting:  false,
-		Bullets:   PlayerProjectilesInit(),
+		Colour:        rl.Color{R: 150, G: 70, B: 50, A: 255},
+		Speed:         700,
+		JumpSpeed:     1500,
+		VertVel:       0,
+		Shooting:      false,
+		Bullets:       PlayerProjectilesInit(),
+		maxHealth:     h,
+		currentHealth: h,
 	}
 }
 
 func (p *Player) Update(g *Game, dt float32) {
-	if CheckCollisionY(p, g.groundTiles) {
-		p.OnSurface = true
-	} else if CheckCollisionY(p, g.platformTiles) {
+	if CheckCollisionY(&p.Rec, g.levelTiles) {
 		p.OnSurface = true
 	} else {
 		p.OnSurface = false
@@ -76,4 +77,48 @@ func (p *Player) Update(g *Game, dt float32) {
 	p.BulletsUpdate(g, dt)
 
 	p.Rec.Y += p.VertVel * dt
+}
+
+func CheckCollisionY(c *rl.Rectangle, t []Tile) (onPlatform bool) {
+	playerHeight := c.Height
+	playerBottom := c.Y + playerHeight
+	playerTop := c.Y
+
+	for _, plat := range t {
+		if rl.CheckCollisionRecs(*c, plat.Rec) {
+			if playerBottom >= plat.Rec.Y && !(playerBottom > plat.Rec.Y+30) {
+				c.Y = plat.Rec.Y - playerHeight + 1
+				onPlatform = true
+			} else if playerTop <= plat.Rec.Y+plat.Rec.Height {
+				c.Y = plat.Rec.Y + plat.Rec.Height
+				onPlatform = false
+			} else {
+				onPlatform = false
+			}
+		}
+	}
+
+	return onPlatform
+}
+
+func (g *Game) MoveAndCollideX(dt float32) {
+	g.player.Rec.X += g.player.Speed * g.player.Direction * dt
+
+	playerWidth := g.player.Rec.Width
+	playerLeft := g.player.Rec.X
+	playerRight := playerLeft + playerWidth
+	playerBottom := g.player.Rec.Y + g.player.Rec.Height
+
+	for _, plat := range g.levelTiles {
+		if rl.CheckCollisionRecs(g.player.Rec, plat.Rec) {
+			if (playerLeft < plat.Rec.X+plat.Rec.Width) &&
+				(playerBottom > plat.Rec.Y+10) && (playerRight > plat.Rec.X+plat.Rec.Width-10) {
+				g.player.Rec.X = plat.Rec.X + plat.Rec.Width
+			} else if (playerRight > plat.Rec.X) && (playerBottom > plat.Rec.Y+10) {
+				g.player.Rec.X = plat.Rec.X - g.player.Rec.Width
+			}
+		}
+	}
+
+	g.BulletCollision()
 }

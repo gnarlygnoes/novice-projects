@@ -1,6 +1,8 @@
 package game
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -17,28 +19,28 @@ type Game struct {
 	player Player
 	// enemy []Enemy
 
-	groundTiles   []Tile
-	platformTiles []Tile
+	levelTiles []Tile
+	// platformTiles []Tile
 
-	enemies []Enemy
+	enemies []NPC
+	// enemies map[CId]*NPC
 }
 
 func NewGame() *Game {
 	img := rl.LoadImage("./img/GrassyField.png")
 	// backgroundTex := rl.LoadTextureFromImage(img)
 	rl.UnloadImage(img)
-
-	gt, pt, e := GenerateTileMap()
+	// tex := rl.LoadTexture("./img/Mossy Tileset/Mossy - Tileset.png")
+	t, e := GenerateTileMap()
 	g := &Game{
 		// Background: backgroundTex,
 		// (rl.Image{"./img/GrassyField.png"}),
 
-		player: *NewPlayer(),
+		player: *NewPlayer(3),
 		Camera: NewCamera(ScreenWidth, ScreenHeight),
 
-		groundTiles:   gt,
-		platformTiles: pt,
-		enemies:       e,
+		levelTiles: t,
+		enemies:    e,
 	}
 
 	return g
@@ -51,6 +53,7 @@ func (g *Game) Update() {
 
 	g.player.Update(g, dt)
 	g.Camera.Update(&g.player)
+	g.UpdateNPC(dt)
 }
 
 func (g *Game) Draw() {
@@ -61,14 +64,14 @@ func (g *Game) Draw() {
 	// rl.DrawTexture(g.Background, 0, 0, rl.White)
 	rl.BeginMode2D(g.Camera.Camera2D)
 
-	// g.groundTiles, g.platformTiles = GenerateTileMap()
+	// userInterface.DrawInterface(g)
 
-	for i := range g.groundTiles {
-		rl.DrawRectangleRec(g.groundTiles[i].Rec, g.groundTiles[i].Colour)
+	for i := range g.levelTiles {
+		rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
 	}
 
-	for i := range g.platformTiles {
-		rl.DrawRectangleRec(g.platformTiles[i].Rec, g.platformTiles[i].Colour)
+	for i := range g.levelTiles {
+		rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
 	}
 
 	for i := range g.enemies {
@@ -80,6 +83,10 @@ func (g *Game) Draw() {
 	}
 
 	rl.DrawRectangleRec(g.player.Rec, g.player.Colour)
+	rl.EndMode2D()
+
+	// Draw Onscreen UI
+	rl.DrawText(fmt.Sprint("Health: ", g.player.currentHealth), 50, ScreenHeight-50, 36, rl.White)
 
 	rl.EndDrawing()
 }

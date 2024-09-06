@@ -60,23 +60,21 @@ func (p *Player) BulletsUpdate(g *Game, dt float32) {
 	}
 }
 
-type MeleeWeapon struct {
+func (g *Game) BulletCollision() {
+	for i := range g.player.Bullets {
+		for j := range g.levelTiles {
+			if rl.CheckCollisionRecs(g.player.Bullets[i].Rec, g.levelTiles[j].Rec) {
+				g.player.Bullets[i].Active = false
+			}
+		}
+		for j := range g.enemies {
+			if rl.CheckCollisionRecs(g.player.Bullets[i].Rec, g.enemies[j].Rec) {
+				g.player.Bullets[i].Active = false
+				// g.enemies[i] =
+			}
+		}
+	}
 }
 
-// func EnemyProjectilesInit() (projectiles [50]Bullet) {
-// 	for i := range projectiles {
-// 		projectiles[i] = Bullet{
-// 			Active: false,
-// 			Rec: rl.Rectangle{
-// 				X:      0,
-// 				Y:      0,
-// 				Width:  0,
-// 				Height: 0,
-// 			},
-// 			Colour: rl.Orange,
-// 			Speed:  0,
-// 		}
-// 	}
-
-// 	return projectiles
-// }
+type MeleeWeapon struct {
+}
