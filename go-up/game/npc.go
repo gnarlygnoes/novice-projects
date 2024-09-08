@@ -15,7 +15,23 @@ type NPC struct {
 	hasWeight bool
 }
 
-func NewNPC(xpos, ypos float32, isEnemy bool) NPC { // take type as string and return
+func NewNPC(xpos, ypos float32, isEnemy bool, npcType string) NPC { // take type as string and return
+	if npcType == "redRectangle" {
+		return NPC{
+			ID: NextId(),
+			Rec: rl.Rectangle{
+				X:      xpos,
+				Y:      ypos,
+				Width:  50,
+				Height: 80,
+			},
+			Colour:    rl.Red,
+			Health:    2,
+			isEnemy:   isEnemy,
+			VertVel:   0,
+			hasWeight: true,
+		}
+	}
 	return NPC{
 		ID: NextId(),
 		Rec: rl.Rectangle{
@@ -24,7 +40,7 @@ func NewNPC(xpos, ypos float32, isEnemy bool) NPC { // take type as string and r
 			Width:  50,
 			Height: 80,
 		},
-		Colour:    rl.Red,
+		Colour:    rl.White,
 		Health:    2,
 		isEnemy:   isEnemy,
 		VertVel:   0,
@@ -33,22 +49,28 @@ func NewNPC(xpos, ypos float32, isEnemy bool) NPC { // take type as string and r
 }
 
 func (g *Game) UpdateNPC(dt float32) {
-	for i := range g.enemies {
+	for id, npc := range g.enemies {
 		// fmt.Println(g.enemies[i].ID)
-		if g.enemies[i].hasWeight {
-			if CheckCollisionY(&g.enemies[i].Rec, g.levelTiles) {
-				g.enemies[i].OnSurface = true
+		// fmt.Println(g.enemies[id].hasWeight)
+		if g.enemies[id].hasWeight {
+			if CheckCollisionY(&npc.Rec, g.levelTiles) {
+				npc.OnSurface = true
+				// g.enemies[id] = npc
 			} else {
-				g.enemies[i].OnSurface = false
+				npc.OnSurface = false
+				// g.enemies[id] = npc
 			}
 
-			if g.enemies[i].OnSurface {
-				g.enemies[i].VertVel = 0
+			if g.enemies[id].OnSurface {
+				npc.VertVel = 0
+				// g.enemies[id] = npc
 			} else {
-				g.enemies[i].VertVel += Gravity * dt
+				npc.VertVel += Gravity * dt
+				// g.enemies[id] = npc
 			}
 
-			g.enemies[i].Rec.Y += g.enemies[i].VertVel * dt
+			npc.Rec.Y += g.enemies[id].VertVel * dt
+			g.enemies[id] = npc
 		}
 	}
 }

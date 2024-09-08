@@ -22,8 +22,8 @@ type Game struct {
 	levelTiles []Tile
 	// platformTiles []Tile
 
-	enemies []NPC
-	// enemies map[CId]*NPC
+	// enemies []NPC
+	enemies map[CId]NPC
 }
 
 func NewGame() *Game {
@@ -32,6 +32,7 @@ func NewGame() *Game {
 	rl.UnloadImage(img)
 	// tex := rl.LoadTexture("./img/Mossy Tileset/Mossy - Tileset.png")
 	t, e := GenerateTileMap()
+	// make(NPC, 0)
 	g := &Game{
 		// Background: backgroundTex,
 		// (rl.Image{"./img/GrassyField.png"}),
@@ -49,7 +50,12 @@ func NewGame() *Game {
 func (g *Game) SetGameMode() {}
 
 func (g *Game) Update() {
+	// fmt.Println(g.player.Bullets)
 	dt := rl.GetFrameTime()
+
+	// for i := range g.player.Bullets {
+	// fmt.Println(len(g.player.Bullets))
+	// }
 
 	g.player.Update(g, dt)
 	g.Camera.Update(&g.player)

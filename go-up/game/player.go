@@ -16,7 +16,7 @@ type Player struct {
 	Jump          bool
 	ResetPos      bool
 	Crouched      bool
-	Bullets       [50]Bullet
+	Bullets       map[CId]Bullet
 	Shooting      bool
 	Facing        float32
 	maxHealth     int
@@ -24,6 +24,7 @@ type Player struct {
 }
 
 func NewPlayer(h int) *Player {
+	// b := map[CId]
 	return &Player{
 		Rec: rl.Rectangle{
 			Width:  50,
@@ -35,7 +36,7 @@ func NewPlayer(h int) *Player {
 		JumpSpeed:     1500,
 		VertVel:       0,
 		Shooting:      false,
-		Bullets:       PlayerProjectilesInit(),
+		Bullets:       map[CId]Bullet{},
 		maxHealth:     h,
 		currentHealth: h,
 	}

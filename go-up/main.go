@@ -15,7 +15,7 @@ func main() {
 	rl.SetTargetFPS(240)
 
 	for !rl.WindowShouldClose() {
-		// rl.DrawFPS(20, 30)
+		rl.DrawFPS(20, 30)
 		g.Update()
 
 		g.Draw()
