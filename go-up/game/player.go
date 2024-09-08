@@ -23,7 +23,7 @@ type Player struct {
 	currentHealth int
 }
 
-func NewPlayer(h int) *Player {
+func NewPlayer(health int) *Player {
 	// b := map[CId]
 	return &Player{
 		Rec: rl.Rectangle{
@@ -37,8 +37,9 @@ func NewPlayer(h int) *Player {
 		VertVel:       0,
 		Shooting:      false,
 		Bullets:       map[CId]Bullet{},
-		maxHealth:     h,
-		currentHealth: h,
+		maxHealth:     health,
+		currentHealth: health,
+		Facing:        1,
 	}
 }
 
@@ -80,18 +81,18 @@ func (p *Player) Update(g *Game, dt float32) {
 	p.Rec.Y += p.VertVel * dt
 }
 
-func CheckCollisionY(c *rl.Rectangle, t []Tile) (onPlatform bool) {
-	playerHeight := c.Height
-	playerBottom := c.Y + playerHeight
-	playerTop := c.Y
+func CheckCollisionY(Rec *rl.Rectangle, t []Tile) (onPlatform bool) {
+	playerHeight := Rec.Height
+	playerBottom := Rec.Y + playerHeight
+	playerTop := Rec.Y
 
 	for _, plat := range t {
-		if rl.CheckCollisionRecs(*c, plat.Rec) {
+		if rl.CheckCollisionRecs(*Rec, plat.Rec) {
 			if playerBottom >= plat.Rec.Y && !(playerBottom > plat.Rec.Y+30) {
-				c.Y = plat.Rec.Y - playerHeight + 1
+				Rec.Y = plat.Rec.Y - playerHeight + 1
 				onPlatform = true
 			} else if playerTop <= plat.Rec.Y+plat.Rec.Height {
-				c.Y = plat.Rec.Y + plat.Rec.Height
+				Rec.Y = plat.Rec.Y + plat.Rec.Height
 				onPlatform = false
 			} else {
 				onPlatform = false

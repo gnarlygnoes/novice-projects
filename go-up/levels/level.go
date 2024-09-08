@@ -1,8 +1,8 @@
 package levels
 
-type Level struct {
-	levelData [][]int32
-}
+// type Level struct {
+// 	levelData [][]int32
+// }
 
 func GenerateGameLevels() (l [][]int32) {
 	// l = append(l, level1)

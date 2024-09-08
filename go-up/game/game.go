@@ -27,9 +27,9 @@ type Game struct {
 }
 
 func NewGame() *Game {
-	img := rl.LoadImage("./img/GrassyField.png")
+	// img := rl.LoadImage("./img/GrassyField.png")
 	// backgroundTex := rl.LoadTextureFromImage(img)
-	rl.UnloadImage(img)
+	// rl.UnloadImage(img)
 	// tex := rl.LoadTexture("./img/Mossy Tileset/Mossy - Tileset.png")
 	t, e := GenerateTileMap()
 	// make(NPC, 0)
