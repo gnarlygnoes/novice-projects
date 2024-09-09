@@ -20,8 +20,9 @@ type Game struct {
 
 	levelTiles []Tile
 
-	npcs  map[CId]NPC
-	items map[CId]Item
+	npcs     map[CId]NPC
+	items    map[CId]Item
+	endpoint float32
 }
 
 func NewGame() *Game {
@@ -29,7 +30,7 @@ func NewGame() *Game {
 	// backgroundTex := rl.LoadTextureFromImage(img)
 	// rl.UnloadImage(img)
 	// tex := rl.LoadTexture("./img/Mossy Tileset/Mossy - Tileset.png")
-	t, e, i := GenerateTileMap()
+	t, e, i, ep := GenerateTileMap()
 	// make(NPC, 0)
 	g := &Game{
 		// Background: backgroundTex,
@@ -41,6 +42,7 @@ func NewGame() *Game {
 		levelTiles: t,
 		npcs:       e,
 		items:      i,
+		endpoint:   ep,
 	}
 
 	return g
@@ -98,7 +100,10 @@ func (g *Game) Draw() {
 	}
 
 	rl.DrawRectangleRec(g.player.Rec, g.player.Colour)
-	fmt.Println(g.player.Rec)
+	// fmt.Println(g.player.Rec)
+	if g.player.Rec.X+g.player.Rec.Width >= g.endpoint {
+		fmt.Println("Level complete.")
+	}
 
 	rl.EndMode2D()
 

@@ -99,6 +99,7 @@ func TestList(t *testing.T) {
 	list.Append(3)
 
 	list = list.Prepend(-1)
+	list = list.Prepend("PEN15")
 
 	list.PrintValues()
 }

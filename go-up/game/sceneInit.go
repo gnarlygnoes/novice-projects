@@ -11,7 +11,7 @@ type Tile struct {
 	Colour rl.Color
 }
 
-func GenerateTileMap() (mapTiles []Tile, npcs map[CId]NPC, items map[CId]Item) {
+func GenerateTileMap() (mapTiles []Tile, npcs map[CId]NPC, items map[CId]Item, endpoint float32) {
 
 	x := levels.GenerateGameLevels()
 
@@ -42,7 +42,6 @@ func GenerateTileMap() (mapTiles []Tile, npcs map[CId]NPC, items map[CId]Item) {
 					},
 					Colour: rl.Brown,
 				}
-
 				mapTiles = append(mapTiles, tile)
 			}
 		}
@@ -61,13 +60,8 @@ func GenerateTileMap() (mapTiles []Tile, npcs map[CId]NPC, items map[CId]Item) {
 
 	healingSalve := MakeItem("health +1", 3200, float32(ScreenHeight)-float32(tileHeight*4)-30)
 	items[healingSalve.Id] = healingSalve
-	// fmt.Print(npcMap)
-	// for i := range enemyMap {
 
-	// }
-	// enemies = append(enemies, e1, e2)
+	endpoint = float32(tileWidth * 33)
 
-	// enemies = make([]NPC, )
-
-	return mapTiles, npcs, items
+	return mapTiles, npcs, items, endpoint
 }

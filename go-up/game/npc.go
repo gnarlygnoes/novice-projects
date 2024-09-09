@@ -74,6 +74,7 @@ func NewNPC(xpos, ypos float32, isEnemy bool, npcType string) NPC { // take type
 			BulletColour: c,
 		}
 	}
+	rs := 2.7
 	return NPC{
 		ID: NextId(),
 		Rec: rl.Rectangle{
@@ -82,13 +83,16 @@ func NewNPC(xpos, ypos float32, isEnemy bool, npcType string) NPC { // take type
 			Width:  50,
 			Height: 80,
 		},
-		Colour:    rl.White,
-		Health:    2,
-		isEnemy:   isEnemy,
-		VertVel:   0,
-		hasWeight: true,
-		shooter:   false,
-		AIBullets: bullets,
+		Colour:       rl.White,
+		Health:       2,
+		isEnemy:      isEnemy,
+		VertVel:      0,
+		hasWeight:    true,
+		shooter:      true,
+		AIBullets:    bullets,
+		BulletColour: rl.White,
+		ReloadSpeed:  rs,
+		canShoot:     true,
 	}
 }
 
@@ -114,11 +118,14 @@ func (g *Game) UpdateNPC(dt float32) {
 		if npc.shooter && npc.canShoot {
 			if g.player.Rec.X < npc.Rec.X {
 				npc.facing = -1
-				if npc.Rec.X-g.player.Rec.X <= 500 {
+				if npc.Rec.X-g.player.Rec.X <= 800 && npc.Rec.X-g.player.Rec.X > 0 {
 					npc.Shoot()
 				}
 			} else {
 				npc.facing = 1
+				if g.player.Rec.X-npc.Rec.X <= 800 && g.player.Rec.X-npc.Rec.X > 0 {
+					npc.Shoot()
+				}
 			}
 		}
 		npc.BulletsUpdate(g, dt)
