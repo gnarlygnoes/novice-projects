@@ -1,13 +1,17 @@
 package game
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
-type Bullet struct {
+type RangedWeap struct {
 	// Active bool
-	Id     CId
-	Rec    rl.Rectangle
-	Colour rl.Color
-	Speed  float32
+	Id          CId
+	Rec         rl.Rectangle
+	Colour      rl.Color
+	Speed       float32
+	ReloadSpeed float32
+	Damage      int
 }
 
 // func PlayerProjectilesInit() (projectiles [50]Bullet) {
@@ -44,7 +48,7 @@ func (p *Player) Shoot() {
 	// 		break
 	// 	}
 	// }
-	b := Bullet{
+	b := RangedWeap{
 		Id: NextId(),
 		Rec: rl.Rectangle{
 			X:      p.Rec.X + p.Rec.Width/2,
@@ -52,8 +56,10 @@ func (p *Player) Shoot() {
 			Width:  20,
 			Height: 5,
 		},
-		Colour: rl.Orange,
-		Speed:  2000 * p.Facing,
+		Colour:      rl.Orange,
+		Speed:       2000 * p.Facing,
+		ReloadSpeed: 0.7,
+		Damage:      1,
 	}
 
 	// for i := range p.Bullets {
@@ -66,6 +72,10 @@ func (p *Player) Shoot() {
 	// }
 	// p.Bullets = map[Bullet{}
 	p.Bullets[b.Id] = b
+
+	p.canShoot = false
+
+	p.BulletTimer.StartTime = rl.GetTime()
 	// return b
 }
 
@@ -84,7 +94,15 @@ func (p *Player) BulletsUpdate(g *Game, dt float32) {
 		// }
 		p.Bullets[id] = b
 	}
+	p.BulletTimer.LifeTime = rl.GetTime() - p.BulletTimer.StartTime
+	if p.BulletTimer.LifeTime >= 0.7 {
+		p.canShoot = true
+	}
 }
+
+// func (p *Player) ShootTimer() {
+// 	if
+// }
 
 func (g *Game) BulletCollision() {
 	for id := range g.player.Bullets {
@@ -94,13 +112,20 @@ func (g *Game) BulletCollision() {
 				delete(g.player.Bullets, id)
 			}
 		}
-		for j := range g.enemies {
-			if rl.CheckCollisionRecs(g.player.Bullets[id].Rec, g.enemies[j].Rec) {
+		for j, npc := range g.npcs {
+			if rl.CheckCollisionRecs(g.player.Bullets[id].Rec, npc.Rec) {
 				// g.player.Bullets[id].Active = false
 				// g.enemies[i] =
 				delete(g.player.Bullets, id)
-				delete(g.enemies, j)
+				// delete(g.npcs, j)
+				// npc.Health -= g.player.Bullets[id].Damage
+				npc.Health--
 			}
+			g.npcs[j] = npc
+			if g.npcs[j].Health <= 0 {
+				delete(g.npcs, j)
+			}
+			// fmt.Println(g.npcs[j].Health)
 		}
 	}
 }

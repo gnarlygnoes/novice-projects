@@ -17,13 +17,11 @@ type Game struct {
 
 	Camera *Camera
 	player Player
-	// enemy []Enemy
 
 	levelTiles []Tile
-	// platformTiles []Tile
 
-	// enemies []NPC
-	enemies map[CId]NPC
+	npcs  map[CId]NPC
+	items map[CId]Item
 }
 
 func NewGame() *Game {
@@ -31,7 +29,7 @@ func NewGame() *Game {
 	// backgroundTex := rl.LoadTextureFromImage(img)
 	// rl.UnloadImage(img)
 	// tex := rl.LoadTexture("./img/Mossy Tileset/Mossy - Tileset.png")
-	t, e := GenerateTileMap()
+	t, e, i := GenerateTileMap()
 	// make(NPC, 0)
 	g := &Game{
 		// Background: backgroundTex,
@@ -41,7 +39,8 @@ func NewGame() *Game {
 		Camera: NewCamera(ScreenWidth, ScreenHeight),
 
 		levelTiles: t,
-		enemies:    e,
+		npcs:       e,
+		items:      i,
 	}
 
 	return g
@@ -80,15 +79,27 @@ func (g *Game) Draw() {
 		rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
 	}
 
-	for i := range g.enemies {
-		rl.DrawRectangleRec(g.enemies[i].Rec, g.enemies[i].Colour)
+	for i := range g.npcs {
+		rl.DrawRectangleRec(g.npcs[i].Rec, g.npcs[i].Colour)
 	}
 
 	for _, b := range g.player.Bullets {
 		rl.DrawRectangleRec(b.Rec, b.Colour)
 	}
 
+	for i := range g.npcs {
+		for _, b := range g.npcs[i].AIBullets {
+			rl.DrawRectangleRec(b.Rec, b.Colour)
+		}
+	}
+
+	for _, i := range g.items {
+		rl.DrawRectangleRec(i.Rec, i.Colour)
+	}
+
 	rl.DrawRectangleRec(g.player.Rec, g.player.Colour)
+	fmt.Println(g.player.Rec)
+
 	rl.EndMode2D()
 
 	// Draw Onscreen UI

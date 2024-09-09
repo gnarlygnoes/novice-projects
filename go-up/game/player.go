@@ -1,6 +1,8 @@
 package game
 
 import (
+	"goup/engine"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -16,11 +18,13 @@ type Player struct {
 	Jump          bool
 	ResetPos      bool
 	Crouched      bool
-	Bullets       map[CId]Bullet
+	Bullets       map[CId]RangedWeap
 	Shooting      bool
 	Facing        float32
 	maxHealth     int
 	currentHealth int
+	canShoot      bool
+	BulletTimer   engine.Timer
 }
 
 func NewPlayer(health int) *Player {
@@ -36,10 +40,11 @@ func NewPlayer(health int) *Player {
 		JumpSpeed:     1500,
 		VertVel:       0,
 		Shooting:      false,
-		Bullets:       map[CId]Bullet{},
+		Bullets:       map[CId]RangedWeap{},
 		maxHealth:     health,
 		currentHealth: health,
 		Facing:        1,
+		canShoot:      true,
 	}
 }
 
@@ -118,6 +123,15 @@ func (g *Game) MoveAndCollideX(dt float32) {
 				g.player.Rec.X = plat.Rec.X + plat.Rec.Width
 			} else if (playerRight > plat.Rec.X) && (playerBottom > plat.Rec.Y+10) {
 				g.player.Rec.X = plat.Rec.X - g.player.Rec.Width
+			}
+		}
+	}
+
+	for _, item := range g.items {
+		if rl.CheckCollisionRecs(g.player.Rec, item.Rec) {
+			if item.ItemType == "health +1" && g.player.currentHealth < g.player.maxHealth {
+				g.player.currentHealth++
+				delete(g.items, item.Id)
 			}
 		}
 	}

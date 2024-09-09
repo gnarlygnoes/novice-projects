@@ -25,7 +25,7 @@ func PlayerInputs(p *Player, dt float32) {
 		p.Rec.Y -= 50
 	}
 	// if key a, shoot. if key d, perform melee attack -- for now with a spear.
-	if rl.IsKeyPressed(rl.KeyA) { // && !p.Shooting {
+	if rl.IsKeyDown(rl.KeyA) && p.canShoot { // && !p.Shooting {
 		p.Shoot()
 	}
 
