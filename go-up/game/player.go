@@ -27,17 +27,16 @@ type Player struct {
 	BulletTimer   engine.Timer
 }
 
-func NewPlayer(health int) *Player {
-	// b := map[CId]
+func NewPlayer(health int, pos rl.Vector2) *Player {
 	return &Player{
 		Rec: rl.Rectangle{
 			Width:  50,
 			Height: 100,
-			X:      ScreenWidth / 2,
-			Y:      0},
+			X:      pos.X,
+			Y:      pos.Y},
 		Colour:        rl.Color{R: 150, G: 70, B: 50, A: 255},
 		Speed:         700,
-		JumpSpeed:     1500,
+		JumpSpeed:     2000,
 		VertVel:       0,
 		Shooting:      false,
 		Bullets:       map[CId]RangedWeap{},
@@ -122,7 +121,7 @@ func (g *Game) MoveAndCollideX(dt float32) {
 				(playerBottom > plat.Rec.Y+10) && (playerRight > plat.Rec.X+plat.Rec.Width-10) {
 				g.player.Rec.X = plat.Rec.X + plat.Rec.Width
 			} else if (playerRight > plat.Rec.X) && (playerBottom > plat.Rec.Y+10) {
-				g.player.Rec.X = plat.Rec.X - g.player.Rec.Width
+				g.player.Rec.X = plat.Rec.X - playerWidth
 			}
 		}
 	}
@@ -132,6 +131,17 @@ func (g *Game) MoveAndCollideX(dt float32) {
 			if item.ItemType == "health +1" && g.player.currentHealth < g.player.maxHealth {
 				g.player.currentHealth++
 				delete(g.items, item.Id)
+			}
+		}
+	}
+
+	for _, npc := range g.npcs {
+		if rl.CheckCollisionRecs(g.player.Rec, npc.Rec) {
+			if (playerLeft < npc.Rec.X+npc.Rec.Width) && (playerBottom > npc.Rec.Y+10) &&
+				playerRight > npc.Rec.X+npc.Rec.Width-10 {
+				g.player.Rec.X = npc.Rec.X + npc.Rec.Width
+			} else if (playerRight > npc.Rec.X) && (playerBottom > npc.Rec.Y+10) {
+				g.player.Rec.X = npc.Rec.X - playerWidth
 			}
 		}
 	}

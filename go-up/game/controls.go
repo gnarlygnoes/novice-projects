@@ -17,6 +17,7 @@ func PlayerInputs(p *Player, dt float32) {
 	}
 	if rl.IsKeyPressed(rl.KeySpace) && p.OnSurface {
 		p.Jump = true
+		// p.canMove = false
 	}
 	if rl.IsKeyPressed(rl.KeyLeftControl) && !p.Crouched {
 		p.Crouched = true

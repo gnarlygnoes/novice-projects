@@ -18,11 +18,14 @@ type Game struct {
 	Camera *Camera
 	player Player
 
+	Level int
+
 	levelTiles []Tile
 
-	npcs     map[CId]NPC
-	items    map[CId]Item
-	endpoint float32
+	npcs       map[CId]NPC
+	items      map[CId]Item
+	startpoint rl.Vector2
+	endpoint   float32
 }
 
 func NewGame() *Game {
@@ -30,29 +33,43 @@ func NewGame() *Game {
 	// backgroundTex := rl.LoadTextureFromImage(img)
 	// rl.UnloadImage(img)
 	// tex := rl.LoadTexture("./img/Mossy Tileset/Mossy - Tileset.png")
-	t, e, i, ep := GenerateTileMap()
+	l := 1
+	t, e, i, sp, ep := GenerateLevel(l)
 	// make(NPC, 0)
 	g := &Game{
 		// Background: backgroundTex,
 		// (rl.Image{"./img/GrassyField.png"}),
 
-		player: *NewPlayer(3),
+		player: *NewPlayer(3, sp),
 		Camera: NewCamera(ScreenWidth, ScreenHeight),
 
 		levelTiles: t,
 		npcs:       e,
 		items:      i,
+		startpoint: sp,
 		endpoint:   ep,
+		Level:      l,
 	}
 
 	return g
 }
 
-func (g *Game) SetGameMode() {}
+func (g *Game) SetGameMode() {
+	if g.Level == 1 {
+		g.Level = 2
+		g.levelTiles, g.npcs, g.items, g.startpoint, g.endpoint = GenerateLevel(g.Level)
+		g.player.Rec.X = g.startpoint.X
+		g.player.Rec.Y = g.startpoint.Y - g.player.Rec.Height
+	}
+}
 
 func (g *Game) Update() {
 	// fmt.Println(g.player.Bullets)
 	dt := rl.GetFrameTime()
+
+	if g.player.Rec.X >= g.endpoint {
+		g.SetGameMode()
+	}
 
 	// for i := range g.player.Bullets {
 	// fmt.Println(len(g.player.Bullets))
@@ -101,9 +118,9 @@ func (g *Game) Draw() {
 
 	rl.DrawRectangleRec(g.player.Rec, g.player.Colour)
 	// fmt.Println(g.player.Rec)
-	if g.player.Rec.X+g.player.Rec.Width >= g.endpoint {
-		fmt.Println("Level complete.")
-	}
+	// if g.player.Rec.X+g.player.Rec.Width >= g.endpoint {
+	// 	fmt.Println("Level complete.")
+	// }
 
 	rl.EndMode2D()
 
