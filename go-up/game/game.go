@@ -14,6 +14,8 @@ const (
 
 type Game struct {
 	// Background rl.Texture2D
+	paused   bool
+	GameMode int
 
 	Camera *Camera
 	player Player
@@ -36,12 +38,14 @@ func NewGame() *Game {
 	l := 1
 	t, e, i, sp, ep := GenerateLevel(l)
 	// make(NPC, 0)
+
 	g := &Game{
 		// Background: backgroundTex,
 		// (rl.Image{"./img/GrassyField.png"}),
 
-		player: *NewPlayer(3, sp),
-		Camera: NewCamera(ScreenWidth, ScreenHeight),
+		player:   *NewPlayer(3, sp),
+		Camera:   NewCamera(ScreenWidth, ScreenHeight),
+		GameMode: 1,
 
 		levelTiles: t,
 		npcs:       e,
@@ -55,11 +59,14 @@ func NewGame() *Game {
 }
 
 func (g *Game) SetGameMode() {
-	if g.Level == 1 {
+	switch g.Level {
+	case 1:
 		g.Level = 2
 		g.levelTiles, g.npcs, g.items, g.startpoint, g.endpoint = GenerateLevel(g.Level)
 		g.player.Rec.X = g.startpoint.X
 		g.player.Rec.Y = g.startpoint.Y - g.player.Rec.Height
+	case 2:
+		g.GameMode = 2
 	}
 }
 
@@ -67,65 +74,83 @@ func (g *Game) Update() {
 	// fmt.Println(g.player.Bullets)
 	dt := rl.GetFrameTime()
 
-	if g.player.Rec.X >= g.endpoint {
-		g.SetGameMode()
+	GameInputs(g)
+
+	if !g.paused {
+
+		if g.player.Rec.X >= g.endpoint {
+			g.SetGameMode()
+		}
+
+		// for i := range g.player.Bullets {
+		// fmt.Println(len(g.player.Bullets))
+		// }
+
+		g.player.Update(g, dt)
+		g.Camera.Update(&g.player)
+		g.UpdateNPC(dt)
+	} else {
+		gamePaused := "GAME PAUSED"
+		rl.DrawText(gamePaused, ScreenWidth/2-int32(len(gamePaused)*24)/2, ScreenHeight/2, 36, rl.Red)
 	}
-
-	// for i := range g.player.Bullets {
-	// fmt.Println(len(g.player.Bullets))
-	// }
-
-	g.player.Update(g, dt)
-	g.Camera.Update(&g.player)
-	g.UpdateNPC(dt)
 }
 
 func (g *Game) Draw() {
 
 	rl.BeginDrawing()
+	if g.GameMode == 1 {
+		rl.ClearBackground(rl.Blue)
+		// rl.DrawTexture(g.Background, 0, 0, rl.White)
+		rl.BeginMode2D(g.Camera.Camera2D)
 
-	rl.ClearBackground(rl.Blue)
-	// rl.DrawTexture(g.Background, 0, 0, rl.White)
-	rl.BeginMode2D(g.Camera.Camera2D)
+		// userInterface.DrawInterface(g)
 
-	// userInterface.DrawInterface(g)
+		for i := range g.levelTiles {
+			rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
+		}
 
-	for i := range g.levelTiles {
-		rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
-	}
+		for i := range g.levelTiles {
+			rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
+		}
 
-	for i := range g.levelTiles {
-		rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
-	}
+		for i := range g.npcs {
+			rl.DrawRectangleRec(g.npcs[i].Rec, g.npcs[i].Colour)
+		}
 
-	for i := range g.npcs {
-		rl.DrawRectangleRec(g.npcs[i].Rec, g.npcs[i].Colour)
-	}
-
-	for _, b := range g.player.Bullets {
-		rl.DrawRectangleRec(b.Rec, b.Colour)
-	}
-
-	for i := range g.npcs {
-		for _, b := range g.npcs[i].AIBullets {
+		for _, b := range g.player.Bullets {
 			rl.DrawRectangleRec(b.Rec, b.Colour)
 		}
+
+		for i := range g.npcs {
+			for _, b := range g.npcs[i].AIBullets {
+				rl.DrawRectangleRec(b.Rec, b.Colour)
+			}
+		}
+
+		for _, i := range g.items {
+			rl.DrawRectangleRec(i.Rec, i.Colour)
+		}
+
+		rl.DrawRectangleRec(g.player.Rec, g.player.Colour)
+		// fmt.Println(g.player.Rec)
+		// if g.player.Rec.X+g.player.Rec.Width >= g.endpoint {
+		// 	fmt.Println("Level complete.")
+		// }
+
+		rl.EndMode2D()
+
+		// Draw Onscreen UI
+		rl.DrawText(fmt.Sprint("Health: ", g.player.currentHealth), 50, ScreenHeight-50, 36, rl.White)
 	}
+	if g.GameMode == 2 {
+		rl.ClearBackground(rl.Blue)
+		// rl.DrawTexture(g.Background, 0, 0, rl.White)
+		// rl.BeginMode2D(g.Camera.Camera2D)
 
-	for _, i := range g.items {
-		rl.DrawRectangleRec(i.Rec, i.Colour)
+		rl.DrawText("Wow, you are really good at this game. I'm jel.\n\nPress Enter to Continue",
+			ScreenWidth/2-200, ScreenHeight/2, 36, rl.Red)
+
+		rl.EndMode2D()
 	}
-
-	rl.DrawRectangleRec(g.player.Rec, g.player.Colour)
-	// fmt.Println(g.player.Rec)
-	// if g.player.Rec.X+g.player.Rec.Width >= g.endpoint {
-	// 	fmt.Println("Level complete.")
-	// }
-
-	rl.EndMode2D()
-
-	// Draw Onscreen UI
-	rl.DrawText(fmt.Sprint("Health: ", g.player.currentHealth), 50, ScreenHeight-50, 36, rl.White)
-
 	rl.EndDrawing()
 }

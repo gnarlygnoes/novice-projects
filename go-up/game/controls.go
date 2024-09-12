@@ -34,3 +34,13 @@ func PlayerInputs(p *Player, dt float32) {
 		p.ResetPos = true
 	}
 }
+
+func GameInputs(g *Game) {
+	if rl.IsKeyPressed(rl.KeyP) {
+		if !g.paused {
+			g.paused = true
+		} else if g.paused {
+			g.paused = false
+		}
+	}
+}
