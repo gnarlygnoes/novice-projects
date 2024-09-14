@@ -10,14 +10,14 @@ import (
 const (
 	ScreenWidth  = 1920
 	ScreenHeight = 1080
-	Gravity      = 0
+	Gravity      = 9800
 )
 
 type Game struct {
 	Background []rl.Texture2D
 	paused     bool
 	GameMode   int
-	// LevelData scene.Level
+	LevelData  scene.Level
 
 	Camera *Camera
 	player Player
@@ -25,8 +25,6 @@ type Game struct {
 	LevelNum int
 
 	levelTiles []Tile
-
-	LevelData scene.Level
 
 	npcs       map[CId]NPC
 	items      map[CId]Item
@@ -40,8 +38,8 @@ func NewGame() *Game {
 	// backgroundTex := rl.LoadTextureFromImage(img)
 	// rl.UnloadImage(img)
 	// tex := rl.LoadTexture("./img/Mossy Tileset/Mossy - Tileset.png")
-	l := 1
-	t, e, i, sp, ep := GenerateLevel(l)
+	// l := 1
+	// t, e, i, sp, ep := GenerateLevel(l)
 	level := scene.GenerateLevel()
 	background := scene.GenerateBackgroundFromLevel(level)
 	// var bTex []rl.Texture2D
@@ -58,19 +56,19 @@ func NewGame() *Game {
 	return &Game{
 		// Background: backgroundTex,
 		// (rl.Image{"./img/GrassyField.png"}),
+		LevelData:  *level,
+		Background: background,
 
-		player:   *NewPlayer(3, sp),
+		player:   *NewPlayer(3, rl.Vector2{X: ScreenWidth / 2, Y: 0}),
 		Camera:   NewCamera(ScreenWidth, ScreenHeight),
 		GameMode: 1,
 
-		levelTiles: t,
-		npcs:       e,
-		items:      i,
-		startpoint: sp,
-		endpoint:   ep,
-		LevelNum:   l,
-		LevelData:  *level,
-		Background: background,
+		// levelTiles: t,
+		// npcs:       e,
+		// items:      i,
+		// startpoint: sp,
+		// endpoint:   ep,
+		// LevelNum:   l,
 	}
 }
 

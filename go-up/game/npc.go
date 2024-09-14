@@ -99,7 +99,7 @@ func NewNPC(xpos, ypos float32, isEnemy bool, npcType string) NPC { // take type
 func (g *Game) UpdateNPC(dt float32) {
 	for id, npc := range g.npcs {
 		if g.npcs[id].hasWeight {
-			if CheckCollisionY(&npc.Rec, g.levelTiles) {
+			if CheckCollisionY(&npc.Rec, g.LevelData.Tiles) {
 				npc.OnSurface = true
 			} else {
 				npc.OnSurface = false
