@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"goup/scene"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -16,13 +17,16 @@ type Game struct {
 	// Background rl.Texture2D
 	paused   bool
 	GameMode int
+	// LevelData scene.Level
 
 	Camera *Camera
 	player Player
 
-	Level int
+	LevelNum int
 
 	levelTiles []Tile
+
+	LevelData scene.Level
 
 	npcs       map[CId]NPC
 	items      map[CId]Item
@@ -31,15 +35,27 @@ type Game struct {
 }
 
 func NewGame() *Game {
+
 	// img := rl.LoadImage("./img/GrassyField.png")
 	// backgroundTex := rl.LoadTextureFromImage(img)
 	// rl.UnloadImage(img)
 	// tex := rl.LoadTexture("./img/Mossy Tileset/Mossy - Tileset.png")
 	l := 1
 	t, e, i, sp, ep := GenerateLevel(l)
+	level := scene.GenerateLevel()
+	// background := scene.GenerateBackground(level)
+	// var bTex []rl.Texture2D
+	// for i := range level.Layers {
+	// 	if level.Layers[i].Id > 1 {
+	// 		bTex[i] = rl.LoadTexture(level.Layers[i].Image)
+	// 	}
+	// }
+	// fmt.Println("BBBBBBBBBBBBBBBBBBBBBBBB: ", level.Layers)
 	// make(NPC, 0)
 
-	g := &Game{
+	// g :=
+
+	return &Game{
 		// Background: backgroundTex,
 		// (rl.Image{"./img/GrassyField.png"}),
 
@@ -52,17 +68,17 @@ func NewGame() *Game {
 		items:      i,
 		startpoint: sp,
 		endpoint:   ep,
-		Level:      l,
+		LevelNum:   l,
+		LevelData:  *level,
+		// Background: background,
 	}
-
-	return g
 }
 
 func (g *Game) SetGameMode() {
-	switch g.Level {
+	switch g.LevelNum {
 	case 1:
-		g.Level = 2
-		g.levelTiles, g.npcs, g.items, g.startpoint, g.endpoint = GenerateLevel(g.Level)
+		g.LevelNum = 2
+		g.levelTiles, g.npcs, g.items, g.startpoint, g.endpoint = GenerateLevel(g.LevelNum)
 		g.player.Rec.X = g.startpoint.X
 		g.player.Rec.Y = g.startpoint.Y - g.player.Rec.Height
 	case 2:
@@ -100,7 +116,18 @@ func (g *Game) Draw() {
 	rl.BeginDrawing()
 	if g.GameMode == 1 {
 		rl.ClearBackground(rl.Blue)
+		// scene.DrawLevel(g.Background)
+		// rl.DrawTexture(l, 0, 0, rl.White)
+		// for i := range g.Background {
+		// 	// if l.Id > 1 {
+		// 	// bTex := rl.LoadTexture(l.Image)
+		// 	rl.DrawTexture(g.Background[i], 0, 0, rl.White)
+		// 	// }
+		// }
+		// fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAA: ", g.LevelData)
+
 		// rl.DrawTexture(g.Background, 0, 0, rl.White)
+
 		rl.BeginMode2D(g.Camera.Camera2D)
 
 		// userInterface.DrawInterface(g)
@@ -147,7 +174,7 @@ func (g *Game) Draw() {
 		// rl.DrawTexture(g.Background, 0, 0, rl.White)
 		// rl.BeginMode2D(g.Camera.Camera2D)
 
-		rl.DrawText("Wow, you are really good at this game. I'm jel.\n\nPress Enter to Continue",
+		rl.DrawText("Wow, you are really good at this game. So proud of u.\n\nPress Enter to Continue",
 			ScreenWidth/2-200, ScreenHeight/2, 36, rl.Red)
 
 		rl.EndMode2D()
