@@ -10,13 +10,13 @@ import (
 const (
 	ScreenWidth  = 1920
 	ScreenHeight = 1080
-	Gravity      = 9800
+	Gravity      = 0
 )
 
 type Game struct {
-	// Background rl.Texture2D
-	paused   bool
-	GameMode int
+	Background []rl.Texture2D
+	paused     bool
+	GameMode   int
 	// LevelData scene.Level
 
 	Camera *Camera
@@ -43,7 +43,7 @@ func NewGame() *Game {
 	l := 1
 	t, e, i, sp, ep := GenerateLevel(l)
 	level := scene.GenerateLevel()
-	// background := scene.GenerateBackground(level)
+	background := scene.GenerateBackgroundFromLevel(level)
 	// var bTex []rl.Texture2D
 	// for i := range level.Layers {
 	// 	if level.Layers[i].Id > 1 {
@@ -70,7 +70,7 @@ func NewGame() *Game {
 		endpoint:   ep,
 		LevelNum:   l,
 		LevelData:  *level,
-		// Background: background,
+		Background: background,
 	}
 }
 
@@ -80,7 +80,7 @@ func (g *Game) SetGameMode() {
 		g.LevelNum = 2
 		g.levelTiles, g.npcs, g.items, g.startpoint, g.endpoint = GenerateLevel(g.LevelNum)
 		g.player.Rec.X = g.startpoint.X
-		g.player.Rec.Y = g.startpoint.Y - g.player.Rec.Height
+		g.player.Rec.Y = g.startpoint.Y - g.player.Rec.Height - 500
 	case 2:
 		g.GameMode = 2
 	}
@@ -112,11 +112,13 @@ func (g *Game) Update() {
 }
 
 func (g *Game) Draw() {
-
 	rl.BeginDrawing()
+
 	if g.GameMode == 1 {
-		rl.ClearBackground(rl.Blue)
-		// scene.DrawLevel(g.Background)
+		// rl.ClearBackground(rl.Blue)
+		for i := range g.Background {
+			scene.DrawLevel(g.Background[i])
+		}
 		// rl.DrawTexture(l, 0, 0, rl.White)
 		// for i := range g.Background {
 		// 	// if l.Id > 1 {
@@ -132,12 +134,17 @@ func (g *Game) Draw() {
 
 		// userInterface.DrawInterface(g)
 
-		for i := range g.levelTiles {
-			rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
-		}
+		// for i := range g.levelTiles {
+		// 	rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
+		// }
 
-		for i := range g.levelTiles {
-			rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
+		// for i := range g.levelTiles {
+		// 	rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
+		// }
+
+		for i := range g.LevelData.Tiles {
+			rl.DrawTexturePro(g.LevelData.Tiles[i].Tex, g.LevelData.Tiles[i].RecIn,
+				g.LevelData.Tiles[i].Rec, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
 		}
 
 		for i := range g.npcs {
@@ -159,10 +166,6 @@ func (g *Game) Draw() {
 		}
 
 		rl.DrawRectangleRec(g.player.Rec, g.player.Colour)
-		// fmt.Println(g.player.Rec)
-		// if g.player.Rec.X+g.player.Rec.Width >= g.endpoint {
-		// 	fmt.Println("Level complete.")
-		// }
 
 		rl.EndMode2D()
 
@@ -170,7 +173,7 @@ func (g *Game) Draw() {
 		rl.DrawText(fmt.Sprint("Health: ", g.player.currentHealth), 50, ScreenHeight-50, 36, rl.White)
 	}
 	if g.GameMode == 2 {
-		rl.ClearBackground(rl.Blue)
+		// rl.ClearBackground(rl.Blue)
 		// rl.DrawTexture(g.Background, 0, 0, rl.White)
 		// rl.BeginMode2D(g.Camera.Camera2D)
 
