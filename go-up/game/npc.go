@@ -1,13 +1,24 @@
 package game
 
 import (
+	"fmt"
 	"goup/engine"
+	"goup/scene/locations"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+// type npcData struct {
+// 	Id            engine.CId
+// 	PosX, PosY    float32
+// 	Height, Width float32
+// 	// Tex           rl.Texture2D
+// 	NpcType   int
+// 	IsHostile bool
+// }
+
 type NPC struct {
-	ID           CId
+	ID           engine.CId
 	Rec          rl.Rectangle
 	Colour       rl.Color
 	Health       int
@@ -17,7 +28,7 @@ type NPC struct {
 	hasWeight    bool
 	shooter      bool
 	facing       float32
-	AIBullets    map[CId]RangedWeap
+	AIBullets    map[engine.CId]RangedWeap
 	canShoot     bool
 	timer        engine.Timer
 	ReloadSpeed  float64
@@ -26,10 +37,10 @@ type NPC struct {
 }
 
 func NewNPC(xpos, ypos float32, isEnemy bool, npcType string) NPC { // take type as string and return
-	bullets := map[CId]RangedWeap{}
+	bullets := map[engine.CId]RangedWeap{}
 	if npcType == "Red Rectangle" {
 		return NPC{
-			ID: NextId(),
+			ID: engine.NextId(),
 			Rec: rl.Rectangle{
 				X:      xpos,
 				Y:      ypos,
@@ -46,7 +57,7 @@ func NewNPC(xpos, ypos float32, isEnemy bool, npcType string) NPC { // take type
 		}
 	}
 	if npcType == "Green Square" {
-		rs := float64(rl.GetRandomValue(10, 20) / 10)
+		reloadSpeed := float64(rl.GetRandomValue(10, 20) / 10)
 		c := rl.Color{
 			R: 50,
 			G: 200,
@@ -55,7 +66,7 @@ func NewNPC(xpos, ypos float32, isEnemy bool, npcType string) NPC { // take type
 		}
 
 		return NPC{
-			ID: NextId(),
+			ID: engine.NextId(),
 			Rec: rl.Rectangle{
 				X:      xpos,
 				Y:      ypos,
@@ -70,13 +81,13 @@ func NewNPC(xpos, ypos float32, isEnemy bool, npcType string) NPC { // take type
 			shooter:      true,
 			AIBullets:    bullets,
 			canShoot:     true,
-			ReloadSpeed:  rs,
+			ReloadSpeed:  reloadSpeed,
 			BulletColour: c,
 		}
 	}
-	rs := 2.7
+	reloadSpeed := 2.7
 	return NPC{
-		ID: NextId(),
+		ID: engine.NextId(),
 		Rec: rl.Rectangle{
 			X:      xpos,
 			Y:      ypos,
@@ -91,12 +102,28 @@ func NewNPC(xpos, ypos float32, isEnemy bool, npcType string) NPC { // take type
 		shooter:      true,
 		AIBullets:    bullets,
 		BulletColour: rl.White,
-		ReloadSpeed:  rs,
+		ReloadSpeed:  reloadSpeed,
 		canShoot:     true,
 	}
 }
 
+func MapNpcs(npcData map[engine.CId]locations.NpcData) map[engine.CId]NPC {
+	npcs := map[engine.CId]NPC{}
+
+	fmt.Println(npcData)
+	for i := range npcData {
+		npcs[i] = NewNPC(npcData[i].PosX, npcData[i].PosY, true, npcData[i].NpcType)
+		npcs[npcData[i].Id] = npcs[i]
+	}
+	// fmt.Println(npcs)
+	return npcs
+}
+
 func (g *Game) UpdateNPC(dt float32) {
+	// for _, npc := range g.npcs {
+	// 	fmt.Println(npc)
+	// }
+	// fmt.Println(len(g.npcs))
 	for id, npc := range g.npcs {
 		if g.npcs[id].hasWeight {
 			if CheckCollisionY(&npc.Rec, g.LevelData.Tiles) {
@@ -147,7 +174,7 @@ func (g *Game) UpdateNPC(dt float32) {
 
 func (npc *NPC) Shoot() {
 	b := RangedWeap{
-		Id: NextId(),
+		Id: engine.NextId(),
 		Rec: rl.Rectangle{
 			X:      npc.Rec.X + npc.Rec.Width/2,
 			Y:      npc.Rec.Y + npc.Rec.Height/2,

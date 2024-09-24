@@ -43,4 +43,12 @@ func GameInputs(g *Game) {
 			g.paused = false
 		}
 	}
+
+	if rl.IsKeyPressed(rl.KeyC) {
+		if !g.displayCollisions {
+			g.displayCollisions = true
+		} else if g.displayCollisions {
+			g.displayCollisions = false
+		}
+	}
 }

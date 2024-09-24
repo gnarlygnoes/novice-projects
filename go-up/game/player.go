@@ -19,7 +19,7 @@ type Player struct {
 	Jump          bool
 	ResetPos      bool
 	Crouched      bool
-	Bullets       map[CId]RangedWeap
+	Bullets       map[engine.CId]RangedWeap
 	Shooting      bool
 	Facing        float32
 	maxHealth     int
@@ -40,7 +40,7 @@ func NewPlayer(health int, pos rl.Vector2) *Player {
 		JumpSpeed:     2000,
 		VertVel:       0,
 		Shooting:      false,
-		Bullets:       map[CId]RangedWeap{},
+		Bullets:       map[engine.CId]RangedWeap{},
 		maxHealth:     health,
 		currentHealth: health,
 		Facing:        1,
@@ -51,8 +51,8 @@ func NewPlayer(health int, pos rl.Vector2) *Player {
 func (p *Player) Update(g *Game, dt float32) {
 	if CheckCollisionY(&p.Rec, g.LevelData.Tiles) {
 		p.OnSurface = true
-	} else if p.Rec.Y+p.Rec.Height > ScreenHeight {
-		p.Rec.Y = ScreenHeight - p.Rec.Height + 1
+	} else if p.Rec.Y+p.Rec.Height > g.LevelData.TileHeight*float32(g.LevelData.TilesY) {
+		p.Rec.Y = g.LevelData.TileHeight*float32(g.LevelData.TilesY) - p.Rec.Height + 1
 		p.OnSurface = true
 	} else {
 		p.OnSurface = false
@@ -89,26 +89,52 @@ func (p *Player) Update(g *Game, dt float32) {
 	p.Rec.Y += p.VertVel * dt
 }
 
-func CheckCollisionY(Rec *rl.Rectangle, t []scene.Tile) (onPlatform bool) {
-	playerHeight := Rec.Height
-	playerBottom := Rec.Y + playerHeight
-	playerTop := Rec.Y
+func CheckCollisionY(Rec *rl.Rectangle, t []scene.Tile) (onTile bool) {
+	recHeight := Rec.Height
+	recBottom := Rec.Y + recHeight
+	recTop := Rec.Y
+	recPosX := Rec.X + (Rec.Width / 2)
+
+	// for _, tile := range t {
+	// 	if rl.CheckCollisionRecs(*Rec, tile.Rec) {
+	// 		if playerBottom >= tile.Rec.Y && !(playerBottom > tile.Rec.Y+30) {
+	// 			Rec.Y = tile.Rec.Y - playerHeight + 1
+	// 			onTile = true
+	// 		} else if playerTop <= tile.Rec.Y+tile.Rec.Height {
+	// 			Rec.Y = tile.Rec.Y + tile.Rec.Height
+	// 			onTile = false
+	// 		} else {
+	// 			onTile = false
+	// 		}
+	// 	}
+	// }
 
 	for _, tile := range t {
 		if rl.CheckCollisionRecs(*Rec, tile.Rec) {
-			if playerBottom >= tile.Rec.Y && !(playerBottom > tile.Rec.Y+30) {
-				Rec.Y = tile.Rec.Y - playerHeight + 1
-				onPlatform = true
-			} else if playerTop <= tile.Rec.Y+tile.Rec.Height {
+			if recBottom >= tile.Rec.Y {
+				for i := 1; i < len(tile.CollisionLines)-1; i++ {
+					if recPosX > tile.CollisionLines[i-1].X && recPosX < tile.CollisionLines[i].X {
+						gradient := (tile.CollisionLines[i].Y - tile.CollisionLines[i-1].Y) / (tile.CollisionLines[i].X - tile.CollisionLines[i-1].X)
+						posYOnLine := tile.CollisionLines[i-1].Y + (recPosX-tile.CollisionLines[i-1].X)*gradient
+						// fmt.Println("Gradient: ", gradient, "PosX: ", recPosX, "PosYOnLine: ", posYOnLine)
+						if Rec.Y+Rec.Height >= posYOnLine {
+							Rec.Y = posYOnLine - recHeight + 1
+							onTile = true
+						}
+					}
+				}
+				// Rec.Y = tile.Rec.Y - playerHeight + 1
+				// onTile = true
+			} else if recTop <= tile.Rec.Y+tile.Rec.Height {
 				Rec.Y = tile.Rec.Y + tile.Rec.Height
-				onPlatform = false
+				onTile = false
 			} else {
-				onPlatform = false
+				onTile = false
 			}
 		}
 	}
 
-	return onPlatform
+	return onTile
 }
 
 func (g *Game) MoveAndCollideX(dt float32) {
@@ -119,16 +145,32 @@ func (g *Game) MoveAndCollideX(dt float32) {
 	playerRight := playerLeft + playerWidth
 	playerBottom := g.player.Rec.Y + g.player.Rec.Height
 
-	for _, plat := range g.LevelData.Tiles {
-		if rl.CheckCollisionRecs(g.player.Rec, plat.Rec) {
-			if (playerLeft < plat.Rec.X+plat.Rec.Width) &&
-				(playerBottom > plat.Rec.Y+10) && (playerRight > plat.Rec.X+plat.Rec.Width-10) {
-				g.player.Rec.X = plat.Rec.X + plat.Rec.Width
-			} else if (playerRight > plat.Rec.X) && (playerBottom > plat.Rec.Y+10) {
-				g.player.Rec.X = plat.Rec.X - playerWidth
-			}
-		}
-	}
+	// gradient :=
+
+	// playerPosX := playerLeft + (playerRight / 2)
+
+	// for _, plat := range g.LevelData.Tiles {
+	// 	if rl.CheckCollisionRecs(g.player.Rec, plat.Rec) {
+	// 		if (playerLeft < plat.Rec.X+plat.Rec.Width) &&
+	// 			(playerBottom > plat.Rec.Y+10) && (playerRight > plat.Rec.X+plat.Rec.Width-10) {
+	// 			g.player.Rec.X = plat.Rec.X + plat.Rec.Width
+	// 		} else if (playerRight > plat.Rec.X) && (playerBottom > plat.Rec.Y+10) {
+	// 			g.player.Rec.X = plat.Rec.X - playerWidth
+	// 		}
+	// 	}
+	// 	// }
+	// }
+
+	// for _, plat := range g.LevelData.Tiles {
+	// 	if rl.CheckCollisionRecs(g.player.Rec, plat.Rec) {
+	// 		if (playerLeft < plat.Rec.X+plat.Rec.Width) &&
+	// 			(playerBottom > plat.Rec.Y+10) && (playerRight > plat.Rec.X+plat.Rec.Width-10) {
+	// 			g.player.Rec.X = plat.Rec.X + plat.Rec.Width
+	// 		} else if (playerRight > plat.Rec.X) && (playerBottom > plat.Rec.Y+10) {
+	// 			g.player.Rec.X = plat.Rec.X - playerWidth
+	// 		}
+	// 	}
+	// }
 
 	for _, item := range g.items {
 		if rl.CheckCollisionRecs(g.player.Rec, item.Rec) {

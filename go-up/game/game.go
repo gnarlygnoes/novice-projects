@@ -2,7 +2,9 @@ package game
 
 import (
 	"fmt"
+	"goup/engine"
 	"goup/scene"
+	"goup/scene/locations"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -24,12 +26,14 @@ type Game struct {
 
 	LevelNum int
 
-	levelTiles []Tile
+	levelTiles []scene.Tile
 
-	npcs       map[CId]NPC
-	items      map[CId]Item
+	npcs       map[engine.CId]NPC
+	items      map[engine.CId]Item
 	startpoint rl.Vector2
 	endpoint   float32
+
+	displayCollisions bool
 }
 
 func NewGame() *Game {
@@ -40,7 +44,12 @@ func NewGame() *Game {
 	// tex := rl.LoadTexture("./img/Mossy Tileset/Mossy - Tileset.png")
 	// l := 1
 	// t, e, i, sp, ep := GenerateLevel(l)
-	level := scene.GenerateLevel()
+
+	startLevel := locations.FirstLevel()
+	// npcData := startLevel.NpcData
+	npcs := MapNpcs(startLevel.NpcData)
+
+	level := scene.GenerateLevel(startLevel.LevelName, startLevel.TileSet)
 	background := scene.GenerateBackgroundFromLevel(level)
 	// var bTex []rl.Texture2D
 	// for i := range level.Layers {
@@ -52,6 +61,8 @@ func NewGame() *Game {
 	// make(NPC, 0)
 
 	// g :=
+	// levellyLevel := locations.ReturnLevel()
+	// jsonfile := startLevel.LevelName
 
 	return &Game{
 		// Background: backgroundTex,
@@ -64,7 +75,7 @@ func NewGame() *Game {
 		GameMode: 1,
 
 		// levelTiles: t,
-		// npcs:       e,
+		npcs: npcs,
 		// items:      i,
 		// startpoint: sp,
 		// endpoint:   ep,
@@ -76,7 +87,7 @@ func (g *Game) SetGameMode() {
 	switch g.LevelNum {
 	case 1:
 		g.LevelNum = 2
-		g.levelTiles, g.npcs, g.items, g.startpoint, g.endpoint = GenerateLevel(g.LevelNum)
+		// g.levelTiles, g.npcs, g.items, g.startpoint, g.endpoint = GenerateLevel(g.LevelNum)
 		g.player.Rec.X = g.startpoint.X
 		g.player.Rec.Y = g.startpoint.Y - g.player.Rec.Height - 500
 	case 2:
@@ -101,7 +112,7 @@ func (g *Game) Update() {
 		// }
 
 		g.player.Update(g, dt)
-		g.Camera.Update(&g.player)
+		g.Camera.Update(&g.player, g)
 		g.UpdateNPC(dt)
 	} else {
 		gamePaused := "GAME PAUSED"
@@ -139,10 +150,24 @@ func (g *Game) Draw() {
 		// for i := range g.levelTiles {
 		// 	rl.DrawRectangleRec(g.levelTiles[i].Rec, g.levelTiles[i].Colour)
 		// }
+		// rl.DrawPoly()
 
 		for i := range g.LevelData.Tiles {
 			rl.DrawTexturePro(g.LevelData.Tiles[i].Tex, g.LevelData.Tiles[i].RecIn,
 				g.LevelData.Tiles[i].Rec, rl.Vector2{X: 0, Y: 0}, 0, rl.White)
+
+			if g.displayCollisions {
+				for j := 1; j < len(g.LevelData.Tiles[i].CollisionLines)-1; j++ {
+					// rl.DrawLine(int32(g.LevelData.Tiles[i].Rec.X)+int32(g.LevelData.Tiles[i].CollisionLines[j-1].X),
+					// 	int32(g.LevelData.Tiles[i].Rec.Y)+int32(g.LevelData.Tiles[i].CollisionLines[j-1].Y),
+					// 	int32(g.LevelData.Tiles[i].Rec.X)+int32(g.LevelData.Tiles[i].CollisionLines[j].X),
+					// 	int32(g.LevelData.Tiles[i].Rec.Y)+int32(g.LevelData.Tiles[i].CollisionLines[j].Y),
+					// 	rl.Red)
+					rl.DrawLine(int32(g.LevelData.Tiles[i].CollisionLines[j-1].X), int32(g.LevelData.Tiles[i].CollisionLines[j-1].Y),
+						int32(g.LevelData.Tiles[i].CollisionLines[j].X), int32(g.LevelData.Tiles[i].CollisionLines[j].Y),
+						rl.Red)
+				}
+			}
 		}
 
 		for i := range g.npcs {
@@ -180,5 +205,6 @@ func (g *Game) Draw() {
 
 		rl.EndMode2D()
 	}
+	rl.DrawFPS(20, 30)
 	rl.EndDrawing()
 }

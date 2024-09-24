@@ -17,7 +17,7 @@ func main() {
 	g := game.NewGame()
 
 	for !rl.WindowShouldClose() {
-		rl.DrawFPS(20, 30)
+
 		g.Update()
 
 		g.Draw()

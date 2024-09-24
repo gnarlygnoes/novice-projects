@@ -1,6 +1,7 @@
 package game
 
 import (
+	"goup/engine"
 	"goup/levels"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -12,7 +13,8 @@ type Tile struct {
 	End    bool
 }
 
-func GenerateLevel(levelNum int) (mapTiles []Tile, npcs map[CId]NPC, items map[CId]Item, startpoint rl.Vector2, endpoint float32) {
+func GenerateLevel(levelNum int) (mapTiles []Tile, npcs map[engine.CId]NPC,
+	items map[engine.CId]Item, startpoint rl.Vector2, endpoint float32) {
 
 	x := levels.ReturnLevel(levelNum)
 
@@ -53,16 +55,17 @@ func GenerateLevel(levelNum int) (mapTiles []Tile, npcs map[CId]NPC, items map[C
 		}
 	}
 
-	npcs = map[CId]NPC{}
+	npcs = map[engine.CId]NPC{}
 
-	items = map[CId]Item{}
+	items = map[engine.CId]Item{}
 
 	npcs, items = GenerateEntities(npcs, items, float32(tileWidth), float32(tileHeight), levelNum)
 
 	return mapTiles, npcs, items, startpoint, endpoint
 }
 
-func GenerateEntities(npcs map[CId]NPC, items map[CId]Item, tw, th float32, level int) (map[CId]NPC, map[CId]Item) {
+func GenerateEntities(npcs map[engine.CId]NPC, items map[engine.CId]Item,
+	tw, th float32, level int) (map[engine.CId]NPC, map[engine.CId]Item) {
 	switch level {
 	case 1:
 		e1 := NewNPC(1800, 500, true, "Red Rectangle")

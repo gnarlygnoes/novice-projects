@@ -1,9 +1,13 @@
 package game
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"goup/engine"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
 
 type Item struct {
-	Id       CId
+	Id       engine.CId
 	Rec      rl.Rectangle
 	Colour   rl.Color
 	ItemType string
@@ -12,7 +16,7 @@ type Item struct {
 func MakeItem(itemType string, x, y float32) (i Item) {
 	if itemType == "health +1" {
 		i = Item{
-			Id: NextId(),
+			Id: engine.NextId(),
 			Rec: rl.Rectangle{
 				X:      x,
 				Y:      y,

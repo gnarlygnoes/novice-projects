@@ -1,11 +1,13 @@
-#include <stdio.h>       
+#include <stdio.h>
 #include "raylib.h"
 #include "aliens.h"
 // #include "aliens.c"
 
-void InitGame(void) 
+void shoot(void);
+
+void InitGame(void)
 {
-    
+
 
     for (size_t i = 0; i < sizeof(stars) / sizeof(*stars); i++) {
         stars[i] = new_star_field();
@@ -29,7 +31,7 @@ void InitGame(void)
     }
 }
 
-void handle_inputs(void) 
+void handle_inputs(void)
 {
     if (IsKeyDown(KEY_LEFT) && player.rec.x > 0) {
         player.rec.x -= 10;
@@ -42,7 +44,7 @@ void handle_inputs(void)
     }
 }
 
-void shoot(void) 
+void shoot(void)
 {
     for (int i = 0; i < NUM_BULLETS; i++) {
         if (!bullet[i].active) {
@@ -58,16 +60,16 @@ void shoot(void)
     }
 }
 
-Star new_star_field() 
+Star new_star_field()
 {
     int r = GetRandomValue(100, 255);
     int g = GetRandomValue(100, 255);
     int b = GetRandomValue(100, 255);
-    
+
     Color c = {
         .r=r, .g=g, .b=b, .a=255
     };
-    
+
     Star star = {
         .x =  GetRandomValue(0, GetScreenWidth()),
         .y =  GetRandomValue(0, GetScreenHeight()),
@@ -86,7 +88,7 @@ int main(void)
     InitGame();
 
     SetTargetFPS(120);
-    
+
     Texture2D game_texture = LoadTexture("img/SpaceInvaders.png");
 
     double dt;
@@ -98,8 +100,8 @@ int main(void)
 
         UpdateGame();
         DrawGame(game_texture);
-        
-        
+
+
         EndDrawing();
     }
 
@@ -121,7 +123,7 @@ void UpdateGame(void)
     }
 }
 
-void DrawGame(Texture2D tex) 
+void DrawGame(Texture2D tex)
 {
     player.in_rec.width = tex.width / 7;
     player.in_rec.height = tex.height / 5;
@@ -134,15 +136,15 @@ void DrawGame(Texture2D tex)
         DrawFPS(12, 36);
 
         for(size_t i = 0; i < sizeof(stars) / sizeof(*stars); i++) {
-            DrawRectangle(stars[i].x, 
-            stars[i].y, 
-            stars[i].w, 
+            DrawRectangle(stars[i].x,
+            stars[i].y,
+            stars[i].w,
             stars[i].h,
-            stars[i].colour);   
+            stars[i].colour);
         }
 
         DrawTexturePro(tex, player.in_rec, player.rec, origin, 0, ORANGE);
-        
+
         for (int i = 0; i < NUM_BULLETS; i++) {
             if (bullet[i].active) {
                 DrawRectangleRec(bullet[i].rec, bullet[i].colour);

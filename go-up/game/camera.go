@@ -18,7 +18,8 @@ func NewCamera(w, h int) *Camera {
 	}
 }
 
-func (c *Camera) Update(player *Player) {
+func (c *Camera) Update(player *Player, g *Game) {
 	c.Target.X = player.Rec.X + (player.Rec.Width / 2) - (ScreenWidth / 2)
-	// c.Target.Y = ScreenHeight / 2
+	// c.Target.Y = player.Rec.Y + (player.Rec.Height / 2) - (ScreenHeight / 2)
+	c.Target.Y = g.LevelData.TileHeight*float32(g.LevelData.TilesY) - ScreenHeight
 }

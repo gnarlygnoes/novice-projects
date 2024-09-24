@@ -15,6 +15,7 @@ type Level struct {
 	TileWidth  float32 `json:"tilewidth"`
 	Layers     []Layer `json:"layers"`
 	Tiles      []Tile
+	// Npcs       map[game.CId]game.NPC
 }
 
 type Layer struct {
@@ -26,10 +27,34 @@ type Layer struct {
 }
 
 type TileData struct {
-	Id          int    `json:"id"`
-	Image       string `json:"image"`
-	ImageHeight int    `json:"imageheight"`
-	ImageWidth  int    `json:"imagewidth"`
+	Id          int                `json:"id"`
+	Image       string             `json:"image"`
+	ImageWidth  int                `json:"imagewidth"`
+	ImageHeight int                `json:"imageheight"`
+	ObjectGroup CollisionObjectEnd `json:"objectgroup"`
+}
+
+type CollisionObjectEnd struct {
+	Id      int                    `json:"id"`
+	X       float32                `json:"x"`
+	Y       float32                `json:"y"`
+	Width   float32                `json:"width"`
+	Height  float32                `json:"height"`
+	Objects []CollisionObjectStart `json:"objects"`
+}
+
+type CollisionObjectStart struct {
+	Id      int             `json:"id"`
+	Width   float32         `json:"width"`
+	Height  float32         `json:"height"`
+	X       float32         `json:"x"`
+	Y       float32         `json:"y"`
+	Polygon []CollisionPoly `json:"polygon"`
+}
+
+type CollisionPoly struct {
+	X float32 `json:"x"`
+	Y float32 `json:"y"`
 }
 
 type TileMap struct {
@@ -37,13 +62,14 @@ type TileMap struct {
 }
 
 type Tile struct {
-	Tex   rl.Texture2D
-	RecIn rl.Rectangle
-	Rec   rl.Rectangle
+	Tex            rl.Texture2D
+	RecIn          rl.Rectangle
+	Rec            rl.Rectangle
+	CollisionLines []rl.Vector2
 }
 
-func GenerateLevel() (level *Level) {
-	levelData, err := os.Open("./scene/Village.json")
+func GenerateLevel(levelname, tileset string) (level *Level) {
+	levelData, err := os.Open(levelname)
 	if err != nil {
 		log.Fatalf("Error parsing JSON: %v", err)
 	}
@@ -55,13 +81,15 @@ func GenerateLevel() (level *Level) {
 		log.Fatalf("Failed to decode JSON: %v", err)
 	}
 
-	level.Tiles = GenerateTiles(*level)
+	level.Tiles = GenerateTiles(*level, "./scene/GroundRevamped.json")
 
 	return level
 }
 
-func GenerateTiles(level Level) (levelTiles []Tile) {
-	jsontiles, err := os.Open("./scene/Ground.json")
+// func GenerateEntities(level Level)
+
+func GenerateTiles(level Level, tilesetName string) (levelTiles []Tile) {
+	jsontiles, err := os.Open(tilesetName)
 	if err != nil {
 		log.Fatalf("Error parsing JSON: %v", err)
 	}
@@ -97,6 +125,7 @@ func GenerateTiles(level Level) (levelTiles []Tile) {
 	for i := range tiles.Tiles {
 		tiledTextureGrid = append(tiledTextureGrid, rl.LoadTexture(tiles.Tiles[i].Image))
 	}
+	w, h := level.TileWidth, level.TileHeight
 
 	for i := range tileArr2d {
 		for j := range tileArr2d[i] {
@@ -106,14 +135,14 @@ func GenerateTiles(level Level) (levelTiles []Tile) {
 					RecIn: rl.Rectangle{
 						X:      0,
 						Y:      0,
-						Width:  128,
-						Height: 128,
+						Width:  w,
+						Height: h,
 					},
 					Rec: rl.Rectangle{
-						X:      float32(j) * float32(54),
-						Y:      float32(i) * float32(54),
-						Width:  54,
-						Height: 54,
+						X:      float32(j) * float32(w),
+						Y:      float32(i) * float32(h),
+						Width:  w,
+						Height: h,
 					},
 				}
 				levelTiles = append(levelTiles, tile)
@@ -121,7 +150,34 @@ func GenerateTiles(level Level) (levelTiles []Tile) {
 		}
 	}
 
+	for i := range levelTiles {
+		levelTiles[i].CollisionLines = GenerateTileCollision(tiles.Tiles[levelTiles[i].Tex.ID-3])
+		for j := range levelTiles[i].CollisionLines {
+			levelTiles[i].CollisionLines[j].X += levelTiles[i].Rec.X
+			levelTiles[i].CollisionLines[j].Y += levelTiles[i].Rec.Y
+		}
+	}
+
 	return levelTiles
+}
+
+func GenerateTileCollision(tile TileData) []rl.Vector2 {
+	var collisionPoly []rl.Vector2
+	for _, co := range tile.ObjectGroup.Objects {
+		if co.Width > 0 {
+			collisionPoly = append(collisionPoly, rl.Vector2{X: 0, Y: 0})
+			collisionPoly = append(collisionPoly, rl.Vector2{X: 128, Y: 0})
+			collisionPoly = append(collisionPoly, rl.Vector2{X: 128, Y: 128})
+			collisionPoly = append(collisionPoly, rl.Vector2{X: 0, Y: 128})
+		} else {
+			collisionPoly = append(collisionPoly, rl.Vector2{X: tile.ObjectGroup.X + co.X, Y: tile.ObjectGroup.Y + co.Y})
+			for _, p := range co.Polygon {
+				collisionPoly = append(collisionPoly, rl.Vector2{X: p.X + co.X, Y: p.Y + co.Y})
+			}
+		}
+		collisionPoly = append(collisionPoly, rl.Vector2{X: tile.ObjectGroup.X + co.X, Y: tile.ObjectGroup.Y + co.Y})
+	}
+	return collisionPoly
 }
 
 func GenerateBackgroundFromLevel(l *Level) (background []rl.Texture2D) {
