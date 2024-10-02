@@ -31,10 +31,10 @@ int main(void)
             DrawFPS(12, 36);
 
             for(size_t i = 0; i < sizeof(stars) / sizeof(*stars); i++) {
-                DrawRectangle(stars[i].x, 
+                DrawCircle(stars[i].x, 
                 stars[i].y, 
                 stars[i].w, 
-                stars[i].h,
+                // stars[i].h,
                 stars[i].colour);   
             }
         EndDrawing();
@@ -58,7 +58,7 @@ Star new_star_field() {
         .x =  GetRandomValue(0, GetScreenWidth()),
         .y =  GetRandomValue(0, GetScreenHeight()),
         .w = GetRandomValue(1, 5) / 1.3,
-        .h = star.w,
+        // .h = star.w,
         .colour = c,
     };
 
