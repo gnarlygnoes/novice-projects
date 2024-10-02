@@ -1,7 +1,6 @@
 package locations
 
 import (
-	"fmt"
 	"goup/engine"
 )
 
@@ -49,7 +48,7 @@ func FirstLevel() GameLevel {
 	npcs[e1.Id] = e1
 	npcs[e2.Id] = e2
 
-	fmt.Println(npcs[0])
+	// fmt.Println(npcs[0])
 	return GameLevel{
 		LevelName: "./scene/Village.json",
 		TileSet:   "./scene/GroundRevamped.json",

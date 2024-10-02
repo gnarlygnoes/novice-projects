@@ -66,8 +66,8 @@ func (p *Player) BulletsUpdate(g *Game, dt float32) {
 
 func (g *Game) BulletCollision() {
 	for id := range g.player.Bullets {
-		for j := range g.levelTiles {
-			if rl.CheckCollisionRecs(g.player.Bullets[id].Rec, g.levelTiles[j].Rec) {
+		for _, tile := range g.LevelData.Tiles {
+			if rl.CheckCollisionRecs(g.player.Bullets[id].Rec, tile.Rec) {
 				// g.player.Bullets[id].Active = false
 				delete(g.player.Bullets, id)
 			}
