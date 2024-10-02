@@ -1,7 +1,0 @@
-/home/david/Documents/novice-projects/rustic-snowflake/target/debug/build/raylib-sys-fcb66ebc203e0c7d/out/lib64/libraylib.a
-/home/david/Documents/novice-projects/rustic-snowflake/target/debug/build/raylib-sys-fcb66ebc203e0c7d/out/include/raylib.h
-/home/david/Documents/novice-projects/rustic-snowflake/target/debug/build/raylib-sys-fcb66ebc203e0c7d/out/include/rlgl.h
-/home/david/Documents/novice-projects/rustic-snowflake/target/debug/build/raylib-sys-fcb66ebc203e0c7d/out/include/raymath.h
-/home/david/Documents/novice-projects/rustic-snowflake/target/debug/build/raylib-sys-fcb66ebc203e0c7d/out/lib64/pkgconfig/raylib.pc
-/home/david/Documents/novice-projects/rustic-snowflake/target/debug/build/raylib-sys-fcb66ebc203e0c7d/out/lib64/cmake/raylib/raylib-config-version.cmake
-/home/david/Documents/novice-projects/rustic-snowflake/target/debug/build/raylib-sys-fcb66ebc203e0c7d/out/lib64/cmake/raylib/raylib-config.cmake
