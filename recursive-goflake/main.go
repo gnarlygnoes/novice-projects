@@ -28,7 +28,7 @@ func main() {
 		rl.DrawFPS(30, 20)
 
 		rl.ClearBackground(rl.Black)
-		draw_snowflakes(centre, 4, 7, 200, 10)
+		draw_snowflakes(centre, 6, 7, 200, 10)
 
 		rl.EndDrawing()
 	}
